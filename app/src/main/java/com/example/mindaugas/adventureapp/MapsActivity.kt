@@ -1,7 +1,14 @@
 package com.example.mindaugas.adventureapp
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.util.Log
+import android.widget.Toast
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -14,6 +21,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
 
+
+    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -21,6 +31,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
+        }else{
+            mMap.isMyLocationEnabled = true
+        }
     }
 
     /**
@@ -36,8 +57,43 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+//        val sydney = LatLng(-34.0, 151.0)
+//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
+        }else{
+            mMap.isMyLocationEnabled = true
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    mMap.isMyLocationEnabled = true
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
+
+        // Add other 'when' lines to check for other
+        // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
     }
 }
