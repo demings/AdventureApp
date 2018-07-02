@@ -2,20 +2,25 @@ package com.example.mindaugas.adventureapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.util.Log
-import android.widget.Toast
 
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.CameraPosition
+import android.location.Criteria
+import android.content.Context.LOCATION_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
+import android.location.LocationManager
+import com.example.mindaugas.adventureapp.R.id.map
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -68,7 +73,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
         }else{
-            mMap.isMyLocationEnabled = true
+//            mMap.isMyLocationEnabled = true
+            centerMapOnMyLocation()
         }
     }
 
@@ -81,7 +87,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    mMap.isMyLocationEnabled = true
+//                    mMap.isMyLocationEnabled = true
+                    centerMapOnMyLocation()
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -94,6 +101,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             else -> {
                 // Ignore all other requests.
             }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun centerMapOnMyLocation() {
+
+        mMap.isMyLocationEnabled = true
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val criteria = Criteria()
+
+        val location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
+        if (location != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13f))
+
+            val cameraPosition = CameraPosition.Builder()
+                    .target(LatLng(location.latitude, location.longitude))      // Sets the center of the map to location user
+                    .zoom(17f)                   // Sets the zoom
+                    .bearing(90f)                // Sets the orientation of the camera to east
+                    .tilt(40f)                   // Sets the tilt of the camera to 30 degrees
+                    .build()                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
     }
 }
