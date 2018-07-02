@@ -19,13 +19,15 @@ import android.location.Criteria
 import android.content.Context.LOCATION_SERVICE
 import android.support.v4.content.ContextCompat.getSystemService
 import android.location.LocationManager
+import android.util.Log
+import android.widget.Toast
 import com.example.mindaugas.adventureapp.R.id.map
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-
+    private val TAG = MapsActivity::class.java!!.simpleName
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
 
@@ -45,7 +47,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
         }else{
-            mMap.isMyLocationEnabled = true
+            centerMapOnMyLocation()
         }
     }
 
@@ -123,5 +125,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     .build()                   // Creates a CameraPosition from the builder
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
+
+        Toast.makeText(this,
+                String.format("lat- %s; long %s", location.latitude.toString(), location.longitude.toString()),
+                Toast.LENGTH_LONG)
+        Log.i(TAG, String.format("lat-%s; long-%s", location.latitude.toString(), location.longitude.toString()))
     }
 }
