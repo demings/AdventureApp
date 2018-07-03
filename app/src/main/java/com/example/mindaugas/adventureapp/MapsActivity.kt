@@ -20,6 +20,7 @@ import android.location.Criteria
 import android.location.LocationManager
 import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
@@ -68,31 +69,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         questDatabase.quests.forEach{
-            it.value.markerID = mMap.addMarker(
-                    MarkerOptions().position(it.value.location)
-                            .title(it.value.name)
-                            .snippet(it.value.description))
-                    .id
+            mMap.addMarker(MarkerOptions()
+                    .position(it.value.location)
+                    .title(it.value.name)
+                    .snippet(it.value.description))
+                    .tag = it.value
         }
 
-//        mMap.setOnMarkerClickListener(this)
+        mMap.setOnInfoWindowClickListener{
+            Toast.makeText(this, "paspaudei, saunuolis", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, QuestActivity::class.java).putExtra("quest", it.tag as Quest)
+            startActivity(intent)
+        }
     }
-
-//    override fun onMarkerClick(p0: Marker?): Boolean {
-//        //make an intent to start a new activity
-//        var quest: Quest? = null
-//
-//        questDatabase.quests.forEach{
-//            if(it.value.markerID.equals(p0!!.id)){
-//                quest = it.value
-//            }
-//        }
-//
-//        val intent = Intent(this, QuestActivity::class.java).putExtra("quest", quest)
-//
-//        startActivity(intent)
-//        return true
-//    }
 
     @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(requestCode: Int,
