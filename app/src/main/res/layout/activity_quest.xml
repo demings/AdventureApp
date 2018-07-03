@@ -10,7 +10,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/questTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TextView"
@@ -18,7 +18,7 @@
             tools:layout_editor_absoluteY="130dp" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/questButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Button"

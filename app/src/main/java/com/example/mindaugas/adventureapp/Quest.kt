@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 
-data class Quest(var name: String, var description: String, var Answer: String, var location: LatLng): Parcelable {
+data class Quest(var name: String, var description: String, var answer: String, var location: LatLng): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readString(),
@@ -15,7 +15,7 @@ data class Quest(var name: String, var description: String, var Answer: String, 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(name)
         parcel.writeString(description)
-        parcel.writeString(Answer)
+        parcel.writeString(answer)
         parcel.writeParcelable(location, flags)
     }
 

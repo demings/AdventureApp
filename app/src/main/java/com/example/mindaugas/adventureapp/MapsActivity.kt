@@ -55,11 +55,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-//        val sydney = LatLng(-34.0, 151.0)
-//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
@@ -77,7 +72,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         mMap.setOnInfoWindowClickListener{
-            Toast.makeText(this, "paspaudei, saunuolis", Toast.LENGTH_SHORT).show()
             val intent = Intent(this, QuestActivity::class.java).putExtra("quest", it.tag as Quest)
             startActivity(intent)
         }
@@ -135,9 +129,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
 
-//        Toast.makeText(this,
-//                String.format("lat- %s; long %s", location.latitude.toString(), location.longitude.toString()),
-//                Toast.LENGTH_LONG).show()
         Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
     }
 }
