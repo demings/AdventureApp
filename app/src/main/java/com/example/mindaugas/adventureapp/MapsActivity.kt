@@ -38,17 +38,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
-        }else{
-            centerMapOnMyLocation()
-        }
     }
 
     /**
@@ -71,11 +60,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
+            requestLocationPermission()
         }else{
-//            mMap.isMyLocationEnabled = true
             centerMapOnMyLocation()
         }
     }
@@ -89,11 +75,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-//                    mMap.isMyLocationEnabled = true
                     centerMapOnMyLocation()
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                    requestLocationPermission()
                 }
                 return
             }
@@ -104,6 +90,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 // Ignore all other requests.
             }
         }
+    }
+
+    private fun requestLocationPermission(){
+        ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 
     @SuppressLint("MissingPermission")
@@ -126,9 +118,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
 
-        Toast.makeText(this,
-                String.format("lat- %s; long %s", location.latitude.toString(), location.longitude.toString()),
-                Toast.LENGTH_LONG)
-        Log.i(TAG, String.format("lat-%s; long-%s", location.latitude.toString(), location.longitude.toString()))
+//        Toast.makeText(this,
+//                String.format("lat- %s; long %s", location.latitude.toString(), location.longitude.toString()),
+//                Toast.LENGTH_LONG).show()
+        Log.i(TAG, String.format("Current location: lat-%s; long-%s", location.latitude.toString(), location.longitude.toString()))
     }
 }
