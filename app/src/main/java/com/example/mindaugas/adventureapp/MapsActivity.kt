@@ -16,12 +16,9 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
 import android.location.Criteria
-import android.content.Context.LOCATION_SERVICE
-import android.support.v4.content.ContextCompat.getSystemService
 import android.location.LocationManager
 import android.util.Log
-import android.widget.Toast
-import com.example.mindaugas.adventureapp.R.id.map
+import com.google.android.gms.maps.model.MarkerOptions
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -63,6 +60,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             requestLocationPermission()
         }else{
             centerMapOnMyLocation()
+        }
+
+        var placesDatabase: PlacesDatabase = PlacesDatabase()
+
+        placesDatabase.places.forEach{
+            mMap.addMarker(MarkerOptions().position(it.value).title(it.key))
         }
     }
 
@@ -121,6 +124,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 //        Toast.makeText(this,
 //                String.format("lat- %s; long %s", location.latitude.toString(), location.longitude.toString()),
 //                Toast.LENGTH_LONG).show()
-        Log.i(TAG, String.format("Current location: lat-%s; long-%s", location.latitude.toString(), location.longitude.toString()))
+        Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
     }
 }
