@@ -60,12 +60,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             requestLocationPermission()
         }else{
             centerMapOnMyLocation()
-        }
 
-        var placesDatabase: PlacesDatabase = PlacesDatabase()
+            var placesDatabase: PlacesDatabase = PlacesDatabase()
 
-        placesDatabase.places.forEach{
-            mMap.addMarker(MarkerOptions().position(it.value).title(it.key))
+            placesDatabase.places.forEach{
+                mMap.addMarker(MarkerOptions().position(it.value).title(it.key))
+            }
         }
     }
 
