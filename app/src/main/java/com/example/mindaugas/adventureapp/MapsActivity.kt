@@ -18,10 +18,12 @@ import com.google.android.gms.maps.model.CameraPosition
 import android.location.Criteria
 import android.location.LocationManager
 import android.util.Log
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+
 
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java!!.simpleName
@@ -60,13 +62,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             requestLocationPermission()
         }else{
             centerMapOnMyLocation()
-
-            var placesDatabase: PlacesDatabase = PlacesDatabase()
-
-            placesDatabase.places.forEach{
-                mMap.addMarker(MarkerOptions().position(it.value).title(it.key))
-            }
         }
+
+        var questDatabase: QuestDatabase = QuestDatabase()
+
+        questDatabase.quests.forEach{
+            mMap.addMarker(MarkerOptions().position(it.value.location).title(it.value.name).snippet(it.value.description))
+        }
+
+        mMap.setOnMarkerClickListener(this);
+    }
+
+    override fun onMarkerClick(p0: Marker?): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //make an intent to start a new activity
+
     }
 
     @SuppressLint("MissingPermission")
