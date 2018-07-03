@@ -3,6 +3,7 @@ package com.example.mindaugas.adventureapp
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -17,18 +18,20 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
 import android.location.Criteria
 import android.location.LocationManager
+import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.util.Log
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java!!.simpleName
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+    var questDatabase: QuestDatabase = QuestDatabase()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,20 +67,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             centerMapOnMyLocation()
         }
 
-        var questDatabase: QuestDatabase = QuestDatabase()
-
         questDatabase.quests.forEach{
-            mMap.addMarker(MarkerOptions().position(it.value.location).title(it.value.name).snippet(it.value.description))
+            it.value.markerID = mMap.addMarker(
+                    MarkerOptions().position(it.value.location)
+                            .title(it.value.name)
+                            .snippet(it.value.description))
+                    .id
         }
 
-        mMap.setOnMarkerClickListener(this);
+//        mMap.setOnMarkerClickListener(this)
     }
 
-    override fun onMarkerClick(p0: Marker?): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        //make an intent to start a new activity
-
-    }
+//    override fun onMarkerClick(p0: Marker?): Boolean {
+//        //make an intent to start a new activity
+//        var quest: Quest? = null
+//
+//        questDatabase.quests.forEach{
+//            if(it.value.markerID.equals(p0!!.id)){
+//                quest = it.value
+//            }
+//        }
+//
+//        val intent = Intent(this, QuestActivity::class.java).putExtra("quest", quest)
+//
+//        startActivity(intent)
+//        return true
+//    }
 
     @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(requestCode: Int,
