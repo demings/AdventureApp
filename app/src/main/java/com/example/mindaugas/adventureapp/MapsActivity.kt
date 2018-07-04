@@ -15,7 +15,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.location.Geofence
 import android.location.Criteria
 import android.location.Location
 import android.location.LocationManager
@@ -25,7 +24,10 @@ import android.support.v7.app.AlertDialog
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
-
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.Marker
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
@@ -38,6 +40,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private var currentLocation: Location? = null
 
+    lateinit var geofencingClient: GeofencingClient
+    lateinit var geofenceList: ArrayList<Geofence>
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +51,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        geofencingClient = LocationServices.getGeofencingClient(this)
+
+
+
     }
 
     /**
@@ -69,34 +79,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         questDatabase.quests.forEach{
-            mMap.addMarker(MarkerOptions()
+
+            var marker : Marker = mMap.addMarker(MarkerOptions()
                     .position(it.value.location)
                     .title(it.value.name)
                     .snippet(it.value.description))
-                    .tag = it.value
 
-//            geofenceList.add(Geofence.Builder()
-//                    // Set the request ID of the geofence. This is a string to identify this
-//                    // geofence.
-//                    .setRequestId(entry.key)
-//
-//                    // Set the circular region of this geofence.
-//                    .setCircularRegion(
-//                            entry.value.latitude,
-//                            entry.value.longitude,
-//                            Constants.GEOFENCE_RADIUS_IN_METERS
-//                    )
-//
-//                    // Set the expiration duration of the geofence. This geofence gets automatically
-//                    // removed after this period of time.
-//                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-//
-//                    // Set the transition types of interest. Alerts are only generated for these
-//                    // transition. We track entry and exit transitions in this sample.
-//                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-//
-//                    // Create the geofence.
-//                    .build())
+            marker.tag = it.value
+
+
+
+            geofenceList.add(Geofence.Builder()
+                    // Set the request ID of the geofence. This is a string to identify this
+                    // geofence.
+                    .setRequestId(marker.id)
+
+                    // Set the circular region of this geofence.
+                    .setCircularRegion(
+                            it.value.location.latitude,
+                            it.value.location.longitude,
+                            Constants.GEOFENCE_RADIUS_IN_METERS
+                    )
+
+                    // Set the expiration duration of the geofence. This geofence gets automatically
+                    // removed after this period of time.
+                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+
+                    // Set the transition types of interest. Alerts are only generated for these
+                    // transition. We track entry and exit transitions in this sample.
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+
+                    // Create the geofence.
+                    .build())
+
+
 
         }
 
