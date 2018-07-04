@@ -3,7 +3,6 @@ package com.example.mindaugas.adventureapp
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -18,11 +17,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
 import android.location.Criteria
 import android.location.LocationManager
-import android.provider.AlarmClock.EXTRA_MESSAGE
 import android.util.Log
-import android.widget.Toast
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import android.support.v7.app.AlertDialog
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
@@ -72,10 +69,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         mMap.setOnInfoWindowClickListener{
-            val intent = Intent(this, QuestActivity::class.java).putExtra("quest", it.tag as Quest)
-            startActivity(intent)
+            //TODO: check if marker is near current location
+            showQuestDialog(it.tag as Quest)
         }
     }
+
+    fun showQuestDialog(quest: Quest) {
+        val dialogBuilder = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.quest_dialog, null)
+        dialogBuilder.setView(dialogView)
+
+
+        dialogBuilder.setTitle(quest.name)
+        dialogBuilder.setMessage(quest.description)
+        dialogBuilder.setPositiveButton("Save") { dialog, whichButton ->
+            //TODO: check if answer is correct
+        }
+        dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
+            //pass
+        }
+        val b = dialogBuilder.create()
+        b.show()
+    }
+
 
     @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(requestCode: Int,
