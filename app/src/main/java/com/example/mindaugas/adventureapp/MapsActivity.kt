@@ -150,6 +150,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
         mMap.setOnInfoWindowClickListener{
             //TODO: check if marker is near current location
+            //TODO: tiesiog lat long patikrint
             //checks if location permission is granted
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
