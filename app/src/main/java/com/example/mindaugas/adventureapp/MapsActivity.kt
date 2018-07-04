@@ -15,7 +15,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.location.Geofence
 import android.location.Criteria
+import android.location.Location
 import android.location.LocationManager
 import android.util.Log
 import com.google.android.gms.maps.model.MarkerOptions
@@ -33,6 +35,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     var questDatabase: QuestDatabase = QuestDatabase()
+
+    private var currentLocation: Location? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,11 +74,46 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     .title(it.value.name)
                     .snippet(it.value.description))
                     .tag = it.value
+
+//            geofenceList.add(Geofence.Builder()
+//                    // Set the request ID of the geofence. This is a string to identify this
+//                    // geofence.
+//                    .setRequestId(entry.key)
+//
+//                    // Set the circular region of this geofence.
+//                    .setCircularRegion(
+//                            entry.value.latitude,
+//                            entry.value.longitude,
+//                            Constants.GEOFENCE_RADIUS_IN_METERS
+//                    )
+//
+//                    // Set the expiration duration of the geofence. This geofence gets automatically
+//                    // removed after this period of time.
+//                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+//
+//                    // Set the transition types of interest. Alerts are only generated for these
+//                    // transition. We track entry and exit transitions in this sample.
+//                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+//
+//                    // Create the geofence.
+//                    .build())
+
         }
 
         mMap.setOnInfoWindowClickListener{
             //TODO: check if marker is near current location
-            showQuestDialog(it.tag as Quest)
+            //checks if location permission is granted
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Permission is not granted
+                requestLocationPermission()
+            }else{
+                if(currentLocation != null){
+                    showQuestDialog(it.tag as Quest)
+                }else{
+                    //location is null
+                }
+            }
         }
     }
 
@@ -103,7 +143,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         val b = dialogBuilder.create()
         b.show()
     }
-
 
     @SuppressLint("MissingPermission")
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -158,5 +197,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
+        currentLocation = location
     }
 }
