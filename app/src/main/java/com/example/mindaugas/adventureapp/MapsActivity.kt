@@ -20,13 +20,16 @@ import android.location.LocationManager
 import android.util.Log
 import com.google.android.gms.maps.model.MarkerOptions
 import android.support.v7.app.AlertDialog
+import android.view.View
+import android.widget.EditText
+import android.widget.Toast
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
     private lateinit var mMap: GoogleMap
-    private val TAG = MapsActivity::class.java!!.simpleName
+    private val TAG = MapsActivity::class.java.simpleName
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     var questDatabase: QuestDatabase = QuestDatabase()
@@ -79,12 +82,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         val inflater = this.layoutInflater
         val dialogView = inflater.inflate(R.layout.quest_dialog, null)
         dialogBuilder.setView(dialogView)
-
+        val editText = dialogView.findViewById<View>(R.id.editTextName) as EditText
+//        Toast.makeText(this, editTextName.text, Toast.LENGTH_SHORT).show()
 
         dialogBuilder.setTitle(quest.name)
         dialogBuilder.setMessage(quest.description)
-        dialogBuilder.setPositiveButton("Save") { dialog, whichButton ->
-            //TODO: check if answer is correct
+        dialogBuilder.setPositiveButton("Submit") { dialog, whichButton ->
+            if(editText.text.toString().equals(quest.answer)){
+                Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
+                //TODO: change marker color to green
+            }else{
+                Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
+                //TODO: don't reset the dialog
+                showQuestDialog(quest)
+            }
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
