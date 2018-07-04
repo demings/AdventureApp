@@ -28,9 +28,26 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.Marker
+import android.app.PendingIntent;
+import android.content.Intent
+import com.google.android.gms.location.GeofencingRequest
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
+
+    private val geofencePendingIntent: PendingIntent by lazy {
+        val intent = Intent(this, GeofenceTransitionsJobIntentService::class.java)
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // addGeofences() and removeGeofences().
+        PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    private fun getGeofencingRequest(): GeofencingRequest {
+        return GeofencingRequest.Builder().apply {
+            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            addGeofences(geofenceList)
+        }.build()
+    }
 
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
@@ -58,6 +75,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     }
 
+    private fun removeGeofences(){
+        geofencingClient?.removeGeofences(geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                // Geofences removed
+                // ...
+            }
+            addOnFailureListener {
+                // Failed to remove geofences
+                // ...
+            }
+        }
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -69,8 +99,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        geofenceList = ArrayList()
+        removeGeofences()
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
             requestLocationPermission()
@@ -119,7 +151,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mMap.setOnInfoWindowClickListener{
             //TODO: check if marker is near current location
             //checks if location permission is granted
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
                 // Permission is not granted
                 requestLocationPermission()
