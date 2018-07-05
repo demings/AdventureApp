@@ -158,9 +158,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 requestLocationPermission()
             }else{
                 if(currentLocation != null){
-                    if(getDistanceFromLatLonInKm(
+                    if(getDistanceFromLatLonInMeters(
                                     LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS / 1000){
+                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS){
                         showQuestDialog(it.tag as Quest)
                     }else{
                         Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
@@ -173,7 +173,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     }
 
 
-    fun getDistanceFromLatLonInKm(location1: LatLng, location2: LatLng): Double {
+    fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {
         var R = 6371 // Radius of the earth in km
         var dLat = deg2rad(location2.latitude - location1.latitude)  // deg2rad below
         var dLon = deg2rad(location2.longitude - location1.longitude)
@@ -184,7 +184,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
         var d = R * c // Distance in km
-        return d
+        return d * 1000
     }
 
     fun deg2rad(deg: Double): Double {
