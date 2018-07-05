@@ -149,25 +149,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         mMap.setOnInfoWindowClickListener{
-            //TODO: check if marker is near current location
-            //TODO: tiesiog lat long patikrint
-            //checks if location permission is granted
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                // Permission is not granted
-                requestLocationPermission()
-            }else{
-                if(currentLocation != null){
-                    if(getDistanceFromLatLonInMeters(
-                                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS){
-                        showQuestDialog(it.tag as Quest)
-                    }else{
-                        Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
+            if(!(it.tag as Quest).isAnswered) {
+                //checks if location permission is granted
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // Permission is not granted
+                    requestLocationPermission()
+                } else {
+                    if (currentLocation != null) {
+                        if (getDistanceFromLatLonInMeters(
+                                        LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                                        it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
+                            showQuestDialog(it.tag as Quest)
+                        } else {
+                            Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        //location is null
                     }
-                }else{
-                    //location is null
                 }
+            }else{
+                Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -204,6 +206,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setPositiveButton("Submit") { dialog, whichButton ->
             if(editText.text.toString().equals(quest.answer)){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
+                quest.isAnswered = true
                 //TODO: change marker color to green
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
