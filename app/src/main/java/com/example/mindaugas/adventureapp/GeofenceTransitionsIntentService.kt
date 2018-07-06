@@ -7,11 +7,42 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.NotificationCompat
+import android.util.Log
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
 
 class GeofenceTransitionsIntentService : IntentService("Quest proximity service") {
     // ...
     override fun onHandleIntent(intent: Intent?) {
-        showNotification("Quest is near by", "Click to join a quest")
+
+        val geofencingEvent = GeofencingEvent.fromIntent(intent)
+        if (geofencingEvent.hasError()) {
+
+            Log.e("Geofence event:", "Failed")
+            return
+        }
+
+        // Get the transition type.
+        val geofenceTransition = geofencingEvent.geofenceTransition
+
+        // Test that the reported transition was of interest.
+        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
+        geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+
+            // Get the geofences that were triggered. A single event can trigger
+
+            showNotification("Quest is near by", "Click to join a quest")
+            // Send notification and log the transition details.
+
+            Log.i("Quest", "Found")
+        } else {
+            // Log the error.
+            Log.e("Geofence : ", getString(R.string.geofence_transition_invalid_type,
+                    geofenceTransition))
+        }
+
+
+
     }
 
     fun showNotification(title: String, content: String) {
