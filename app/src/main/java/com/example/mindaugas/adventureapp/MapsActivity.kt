@@ -35,12 +35,7 @@ import com.google.android.gms.location.GeofencingRequest
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
-    private val geofencePendingIntent: PendingIntent by lazy {
-        val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
-        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
-        // addGeofences() and removeGeofences().
-        PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
+
 
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
@@ -50,8 +45,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private var currentLocation: Location? = null
 
+    // geofencing
+    lateinit var geofencingClient: GeofencingClient
+    private var geofenceList : MutableList<Geofence> = mutableListOf()
+
+    private fun getGeofencingRequest(): GeofencingRequest {
+        return GeofencingRequest.Builder().apply {
+            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            addGeofences(geofenceList)
+        }.build()
+    }
+
+    private val geofencePendingIntent: PendingIntent by lazy {
+        val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // addGeofences() and removeGeofences().
+        PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -60,10 +78,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
 
-
-
-
     }
+
+
 
     /**
      * Manipulates the map once available.
@@ -97,34 +114,55 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
 
-//            geofenceList.add(Geofence.Builder()
-//                    // Set the request ID of the geofence. This is a string to identify this
-//                    // geofence.
-//                    .setRequestId(marker.id)
-//
-//                    // Set the circular region of this geofence.
-//                    .setCircularRegion(
-//                            it.value.location.latitude,
-//                            it.value.location.longitude,
-//                            Constants.GEOFENCE_RADIUS_IN_METERS
-//                    )
-//
-//                    // Set the expiration duration of the geofence. This geofence gets automatically
-//                    // removed after this period of time.
-//                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-//
-//                    // Set the transition types of interest. Alerts are only generated for these
-//                    // transition. We track entry and exit transitions in this sample.
-//                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-//
-//                    // Create the geofence.
-//                    .build())
+            geofenceList.add(Geofence.Builder()
+                    // Set the request ID of the geofence. This is a string to identify this
+                    // geofence.
+                    .setRequestId(marker.id)
+
+                    // Set the circular region of this geofence.
+                    .setCircularRegion(
+                            it.value.location.latitude,
+                            it.value.location.longitude,
+                            Constants.GEOFENCE_RADIUS_IN_METERS
+                    )
+
+                    // Set the expiration duration of the geofence. This geofence gets automatically
+                    // removed after this period of time.
+                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+
+                    // Set the transition types of interest. Alerts are only generated for these
+                    // transition. We track entry and exit transitions in this sample.
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+
+                    // Create the geofence.
+                    .build())
 
 
 
         }
 
-        geofencePendingIntent.send()
+        geofencingClient = LocationServices.getGeofencingClient(this)
+
+
+
+        geofencingClient?.addGeofences(getGeofencingRequest(), geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                // Geofences added
+                // ...
+
+                val toast = Toast.makeText(applicationContext, "Geofence added succesfully", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+            addOnFailureListener {
+                // Failed to add geofences
+                // ...
+
+                val toast = Toast.makeText(applicationContext, "Failed to add geofence", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+        }
+
+      //  geofencePendingIntent.send()
 
         mMap.setOnInfoWindowClickListener{
             if(!(it.tag as Quest).isAnswered) {
