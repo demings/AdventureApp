@@ -55,7 +55,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     var questDatabase: QuestDatabase = QuestDatabase()
 
-    private var currentLocation: Location? = null
+    private lateinit var currentLocation: Location
 
     lateinit var geofencingClient: GeofencingClient
     lateinit var geofenceList: ArrayList<Geofence>
