@@ -29,22 +29,20 @@ import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.Marker
 import android.app.PendingIntent;
+import android.content.ContentValues
 import android.content.Intent
 import com.google.android.gms.location.GeofencingRequest
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
-
-
-
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
-    var questDatabase: QuestDatabase = QuestDatabase()
 
-    private var currentLocation: Location? = null
 
+    private lateinit var currentLocation: Location
+  
     // geofencing
     lateinit var geofencingClient: GeofencingClient
     private var geofenceList : MutableList<Geofence> = mutableListOf()
@@ -63,21 +61,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-
-
+    var firebase = Firebase()
+    var quests = mutableMapOf<String, Quest>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-
     }
 
 
@@ -94,7 +87,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
@@ -103,43 +95,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             centerMapOnMyLocation()
         }
 
-        questDatabase.quests.forEach{
+        firebase.firestore.collection("quests")
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        for (document in task.result) {
+                            var quest: Quest = document.toObject(Quest::class.java)
+                            quests.put(document.id, quest)
+                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
 
-            var marker : Marker = mMap.addMarker(MarkerOptions()
-                    .position(it.value.location)
-                    .title(it.value.name)
-                    .snippet(it.value.description))
+                            addMarkerToMapWithQuest(quest)
 
-            marker.tag = it.value
+                        }
+                    } else {
+                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+                    }
+                }
 
-
-
-            geofenceList.add(Geofence.Builder()
-                    // Set the request ID of the geofence. This is a string to identify this
-                    // geofence.
-                    .setRequestId(marker.id)
-
-                    // Set the circular region of this geofence.
-                    .setCircularRegion(
-                            it.value.location.latitude,
-                            it.value.location.longitude,
-                            Constants.GEOFENCE_RADIUS_IN_METERS
-                    )
-
-                    // Set the expiration duration of the geofence. This geofence gets automatically
-                    // removed after this period of time.
-                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-
-                    // Set the transition types of interest. Alerts are only generated for these
-                    // transition. We track entry and exit transitions in this sample.
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-
-                    // Create the geofence.
-                    .build())
-
-
-
-        }
 
         geofencingClient = LocationServices.getGeofencingClient(this)
 
@@ -190,6 +162,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
+    fun addMarkerToMapWithQuest(quest: Quest){
+        var marker : Marker = mMap.addMarker(MarkerOptions()
+                .position(com.google.android.gms.maps.model.LatLng(quest.latitude, quest.longitude))
+                .title(quest.name)
+                .snippet(quest.description))
+
+        marker.tag = quest
+    }
 
     fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {
         var R = 6371 // Radius of the earth in km
