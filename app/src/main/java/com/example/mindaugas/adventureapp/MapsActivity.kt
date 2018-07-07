@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.Marker
 import android.app.PendingIntent;
 import android.content.ContentValues
 import android.content.Intent
+import android.nfc.Tag
 import com.google.android.gms.location.GeofencingRequest
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
@@ -41,8 +42,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
 
 
-    private lateinit var currentLocation: Location
-  
+    private var currentLocation: Location? = null
+
     // geofencing
     lateinit var geofencingClient: GeofencingClient
     private var geofenceList : MutableList<Geofence> = mutableListOf()
@@ -82,52 +83,53 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             requestLocationPermission()
         }else {
             centerMapOnMyLocation()
+        }
 
-            firebase.firestore.collection("quests")
-                    .get()
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            for (document in task.result) {
-                                var quest: Quest = document.toObject(Quest::class.java)
-                                quests.put(document.id, quest)
-                                Log.d(ContentValues.TAG, document.id + " => " + document.data)
+        firebase.firestore.collection("quests")
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        for (document in task.result) {
+                            var quest: Quest = document.toObject(Quest::class.java)
+                            quests.put(document.id, quest)
+                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
 
-                                addMarkerToMapWithQuest(quest)
-                                addGeofenceForQuest(document.id, quest)
-                                addGeofencesToClient()
-                            }
-                        } else {
-                            Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+                            addMarkerToMapWithQuest(quest)
+                            addGeofenceForQuest(document.id, quest)
+                            addGeofencesToClient()
                         }
-                    }
-
-            //  geofencePendingIntent.send()
-
-            mMap.setOnInfoWindowClickListener {
-                if (!(it.tag as Quest).isAnswered) {
-                    //checks if location permission is granted
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED) {
-                        // Permission is not granted
-                        requestLocationPermission()
                     } else {
-                        if (currentLocation != null) {
-                            if (getDistanceFromLatLonInMeters(
-                                            LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                                            it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
-                                showQuestDialog(it.tag as Quest)
-                            } else {
-                                Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            //location is null
-                        }
+                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
                     }
-                } else {
-                    Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
                 }
+
+        //  geofencePendingIntent.send()
+
+        mMap.setOnInfoWindowClickListener {
+            if (!(it.tag as Quest).isAnswered) {
+                //checks if location permission is granted
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // Permission is not granted
+                    requestLocationPermission()
+                } else {
+                    if (currentLocation != null) {
+                        if (getDistanceFromLatLonInMeters(
+                                        LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                                        it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
+                            showQuestDialog(it.tag as Quest)
+                        } else {
+                            Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        //location is null
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
             }
         }
+
     }
 
 
@@ -288,15 +290,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 // Geofences added
                 // ...
 
-                val toast = Toast.makeText(applicationContext, "Geofence added succesfully", Toast.LENGTH_SHORT)
-                toast.show()
+                Log.i(TAG, "Geofence added succesfully")
             }
             addOnFailureListener {
                 // Failed to add geofences
                 // ...
-
-                val toast = Toast.makeText(applicationContext, "Failed to add geofence", Toast.LENGTH_SHORT)
-                toast.show()
+                Log.i(TAG, "Failed to add geofence")
             }
         }
     }
