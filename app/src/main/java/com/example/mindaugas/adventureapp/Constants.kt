@@ -4,7 +4,7 @@ class Constants {
 
     companion object{
 
-        const val GEOFENCE_RADIUS_IN_METERS: Float = 100F
+        const val GEOFENCE_RADIUS_IN_METERS: Float = 699990.0f
         const val GEOFENCE_EXPIRATION_IN_MILLISECONDS : Long = 604800000
     }
 }
