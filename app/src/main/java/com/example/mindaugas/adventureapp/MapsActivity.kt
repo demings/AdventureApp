@@ -60,6 +60,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     protected val REQUEST_CHECK_SETTINGS = 0x1
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
@@ -68,6 +70,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     var quests = mutableMapOf<String, Quest>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -190,8 +194,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         //  geofencePendingIntent.send()
 
         mMap.setOnInfoWindowClickListener {
+
+            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val criteria = Criteria()
+
+            val location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
+            currentLocation = location
+
             if (!(it.tag as Quest).isAnswered) {
                 //checks if location permission is granted
+
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
                     // Permission is not granted
@@ -206,7 +218,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                             Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        //location is null
+                        Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
+
                     }
                 }
             } else {
