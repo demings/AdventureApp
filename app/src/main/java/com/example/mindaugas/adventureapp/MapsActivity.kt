@@ -2,6 +2,7 @@ package com.example.mindaugas.adventureapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
@@ -58,7 +59,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     }
 
 
-    
+
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
     lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
@@ -84,11 +85,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 //user is signed out
                 startActivityForResult(
                     AuthUI.getInstance()
-                        .createSignInIntentBuilder().setIsSmartLockEnabled(false)
+                        .createSignInIntentBuilder().setIsSmartLockEnabled(!BuildConfig.DEBUG)
                         .setAvailableProviders(Arrays.asList(
                                 AuthUI.IdpConfig.FacebookBuilder().build()))
                         .build(),
                 RC_SIGN_IN)
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == RC_SIGN_IN){
+            if(resultCode == Activity.RESULT_OK){
+                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show()
+            }else if(resultCode == Activity.RESULT_CANCELED){
+                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
+                finish()
             }
         }
     }
