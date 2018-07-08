@@ -2,6 +2,7 @@ package com.example.mindaugas.adventureapp
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
@@ -19,6 +20,7 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
@@ -31,13 +33,17 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.auth.FirebaseAuth
+import java.util.*
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private lateinit var mMap: GoogleMap
-    private val TAG = MapsActivity::class.java.simpleName
 
+    private val TAG = MapsActivity::class.java.simpleName
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+    private val RC_SIGN_IN = 123
 
 
     private var currentLocation: Location? = null
@@ -55,6 +61,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
     var firebase = Firebase()
+    var mFirebaseAuth =  FirebaseAuth.getInstance()
+    lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
+
     var quests = mutableMapOf<String, Quest>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +75,46 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofencingClient = LocationServices.getGeofencingClient(this)
+
+        mAuthStateListener = FirebaseAuth.AuthStateListener(){
+            var user = it.currentUser
+            if(user != null){
+                //user is signed in
+//                Toast.makeText(this, "Welcome to adventure app", Toast.LENGTH_SHORT).show()
+            }else{
+                //user is signed out
+                startActivityForResult(
+                    AuthUI.getInstance()
+                        .createSignInIntentBuilder().setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                        .setAvailableProviders(Arrays.asList(
+                                AuthUI.IdpConfig.FacebookBuilder().build()))
+                        .build(),
+                RC_SIGN_IN)
+            }
+        }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == RC_SIGN_IN){
+            if(resultCode == Activity.RESULT_OK){
+                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show()
+            }else if(resultCode == Activity.RESULT_CANCELED){
+                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        mFirebaseAuth.removeAuthStateListener(mAuthStateListener)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mFirebaseAuth.addAuthStateListener(mAuthStateListener)
+    }
 
     /**
      * Manipulates the map once available.
