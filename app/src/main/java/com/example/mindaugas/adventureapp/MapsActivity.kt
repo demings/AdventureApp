@@ -5,16 +5,10 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Criteria
-import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -22,17 +16,16 @@ import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import java.util.*
 
@@ -42,11 +35,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private lateinit var mMap: GoogleMap
 
     private val TAG = MapsActivity::class.java.simpleName
-    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private val RC_SIGN_IN = 123
 
-
-    private var currentLocation: Location? = null
+    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
 
     // geofencing
     lateinit var geofencingClient: GeofencingClient
@@ -58,10 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    protected val REQUEST_CHECK_SETTINGS = 0x1
-
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
+    lateinit var locationMethods: LocationMethods
 
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
@@ -71,7 +59,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -80,38 +67,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofencingClient = LocationServices.getGeofencingClient(this)
-            val locationRequest = LocationRequest().apply {
-                interval = 10000
-                fastestInterval = 5000
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            }
 
-        val builder = LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest)
-
-        val client: SettingsClient = LocationServices.getSettingsClient(this)
-        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-
-        task.addOnSuccessListener { locationSettingsResponse ->
-            // All location settings are satisfied. The client can initialize
-            // location requests here.
-            // ...
-        }
-
-        task.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException){
-                // Location settings are not satisfied, but this can be fixed
-                // by showing the user a dialog.
-                try {
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    exception.startResolutionForResult(this@MapsActivity,
-                            REQUEST_CHECK_SETTINGS)
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
-            }
-        }
 
         mAuthStateListener = FirebaseAuth.AuthStateListener(){
             var user = it.currentUser
@@ -164,14 +120,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            requestLocationPermission()
-        }else {
-            centerMapOnMyLocation()
-        }
+        locationMethods = LocationMethods(this, mMap)
+        locationMethods.centerMapOnMyLocation()
 
         firebase.firestore.collection("quests")
                 .get()
@@ -195,32 +145,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
         mMap.setOnInfoWindowClickListener {
 
-            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val criteria = Criteria()
-
-            val location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
-            currentLocation = location
+            var currentLocation = locationMethods.getLastKnownLocation()
 
             if (!(it.tag as Quest).isAnswered) {
-                //checks if location permission is granted
-
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    // Permission is not granted
-                    requestLocationPermission()
-                } else {
-                    if (currentLocation != null) {
-                        if (getDistanceFromLatLonInMeters(
-                                        LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                                        it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
-                            showQuestDialog(it.tag as Quest)
-                        } else {
-                            Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
-                        }
+                if (currentLocation != null) {
+                    if (locationMethods.getDistanceFromLatLonInMeters(
+                                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
+                        showQuestDialog(it.tag as Quest)
                     } else {
-                        Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
-
+                        Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
@@ -237,24 +174,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 .snippet(quest.description))
 
         marker.tag = quest
-    }
-
-    fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {
-        var R = 6371 // Radius of the earth in km
-        var dLat = deg2rad(location2.latitude - location1.latitude)  // deg2rad below
-        var dLon = deg2rad(location2.longitude - location1.longitude)
-
-        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                        Math.cos(deg2rad(location1.latitude)) * Math.cos(deg2rad(location2.latitude)) *
-                        Math.sin(dLon/2) * Math.sin(dLon/2)
-
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-        var d = R * c // Distance in km
-        return d * 1000
-    }
-
-    fun deg2rad(deg: Double): Double {
-        return deg * (Math.PI/180)
     }
 
     fun showQuestDialog(quest: Quest) {
@@ -283,62 +202,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
         val b = dialogBuilder.create()
         b.show()
-    }
-
-    @SuppressLint("MissingPermission")
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
-                // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    centerMapOnMyLocation()
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    requestLocationPermission()
-                }
-                return
-            }
-
-        // Add other 'when' lines to check for other
-        // permissions this app might request.
-            else -> {
-                // Ignore all other requests.
-            }
-        }
-    }
-
-    private fun requestLocationPermission(){
-        ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun centerMapOnMyLocation() {
-
-        mMap.isMyLocationEnabled = true
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val criteria = Criteria()
-
-        val location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
-        if (location != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13f))
-
-            val cameraPosition = CameraPosition.Builder()
-                    .target(LatLng(location.latitude, location.longitude))      // Sets the center of the map to location user
-                    .zoom(17f)                   // Sets the zoom
-                    .bearing(90f)                // Sets the orientation of the camera to east
-                    .tilt(40f)                   // Sets the tilt of the camera to 30 degrees
-                    .build()                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-        }
-
-      //  Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
-        currentLocation = location
     }
 
     private fun getGeofencingRequest(): GeofencingRequest {
