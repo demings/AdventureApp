@@ -13,7 +13,11 @@ import com.google.android.gms.location.GeofencingEvent
 
 class GeofenceTransitionsIntentService : IntentService("Quest proximity service") {
     // ...
+    val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
     override fun onHandleIntent(intent: Intent?) {
+
+
 
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent.hasError()) {
@@ -26,8 +30,7 @@ class GeofenceTransitionsIntentService : IntentService("Quest proximity service"
         val geofenceTransition = geofencingEvent.geofenceTransition
 
         // Test that the reported transition was of interest.
-        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
-        geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
 
             // Get the geofences that were triggered. A single event can trigger
 
@@ -35,7 +38,11 @@ class GeofenceTransitionsIntentService : IntentService("Quest proximity service"
             // Send notification and log the transition details.
 
             Log.i("Quest", "Found")
-        } else {
+        }else if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+            mNotificationManager.cancel(0)
+
+        }
+        else {
             // Log the error.
             Log.e("Geofence : ", getString(R.string.geofence_transition_invalid_type,
                     geofenceTransition))
@@ -46,9 +53,9 @@ class GeofenceTransitionsIntentService : IntentService("Quest proximity service"
     }
 
     fun showNotification(title: String, content: String) {
-        val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel("default",
+            val channel = NotificationChannel("EnterQuest",
                     "YOUR_CHANNEL_NAME",
                     NotificationManager.IMPORTANCE_DEFAULT)
             channel.description = "YOUR_NOTIFICATION_CHANNEL_DISCRIPTION"
