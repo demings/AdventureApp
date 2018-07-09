@@ -37,7 +37,6 @@ class LocationMethods{
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
         createLocationRequest()
-
     }
 
     fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {

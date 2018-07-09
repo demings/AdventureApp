@@ -7,8 +7,10 @@ import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -144,28 +146,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     }
                 }
 
-        //  geofencePendingIntent.send()
+        geofencePendingIntent.send()
 
-//        mMap.setOnInfoWindowClickListener {
-//
-////            var currentLocation = locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener {  }
-//
-//            if (!(it.tag as Quest).isAnswered) {
-//                if (currentLocation != null) {
-//                    if (locationMethods.getDistanceFromLatLonInMeters(
-//                                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-//                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
-//                        showQuestDialog(it.tag as Quest)
-//                    } else {
-//                        Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
-//                    }
-//                } else {
-//                    Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
-//                }
-//            } else {
-//                Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
-//            }
-//        }
+        mMap.setOnInfoWindowClickListener {
+
+            var currentLocation: Location? = null
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                locationMethods.requestLocationPermission()
+            }else {
+                locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    currentLocation = location
+                    if (!(it.tag as Quest).isAnswered) {
+                        if (currentLocation != null) {
+                            if (locationMethods.getDistanceFromLatLonInMeters(
+                                            LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+                                            it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
+                                showQuestDialog(it.tag as Quest)
+                            } else {
+                                Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        }
 
     }
 
