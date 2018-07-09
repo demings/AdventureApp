@@ -35,11 +35,9 @@ import java.util.*
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private lateinit var mMap: GoogleMap
-
+    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
-
-    private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
 
 
     // geofencing
@@ -60,7 +58,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     var quests = mutableMapOf<String, Quest>()
 
-    var requestingLocationUpdates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,7 +151,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
-                locationMethods.requestLocationPermission()
+                requestLocationPermission()
             }else {
                 locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     currentLocation = location
@@ -275,11 +272,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 //                    centerMapOnMyLocation()
+
                     locationMethods.createLocationRequest()
+                    locationMethods.centerMapOnMyLocation()
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    locationMethods.requestLocationPermission()
+//                    requestLocationPermission()
                 }
                 return
             }
@@ -290,5 +289,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 // Ignore all other requests.
             }
         }
+    }
+
+    fun requestLocationPermission(){
+        ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 }

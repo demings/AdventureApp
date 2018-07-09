@@ -25,7 +25,7 @@ import com.facebook.FacebookSdk.getApplicationContext
 
 class LocationMethods{
 
-    private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+    var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private var REQUEST_CHECK_SETTINGS = 0x1
     val fusedLocationClient: FusedLocationProviderClient
     val context: Context
@@ -58,14 +58,6 @@ class LocationMethods{
     }
 
 
-    fun requestLocationPermission(){
-        var activity: Activity = context as Activity
-        ActivityCompat.requestPermissions(activity,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
-    }
-
-
 
     fun centerMapOnMyLocation() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -93,6 +85,12 @@ class LocationMethods{
 //                        Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
                     }
         }
+    }
+
+    fun requestLocationPermission(){
+        ActivityCompat.requestPermissions(context as Activity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 
     fun createLocationRequest() {
