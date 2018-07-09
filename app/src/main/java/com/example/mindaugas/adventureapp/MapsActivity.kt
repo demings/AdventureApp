@@ -38,6 +38,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val RC_SIGN_IN = 123
 
     private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+    protected val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
+
 
     // geofencing
     lateinit var geofencingClient: GeofencingClient
@@ -57,8 +59,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     var quests = mutableMapOf<String, Quest>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    var requestingLocationUpdates = false
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        updateValuesFromBundle(savedInstanceState)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -107,6 +111,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onResume() {
         super.onResume()
         mFirebaseAuth.addAuthStateListener(mAuthStateListener)
+        if (requestingLocationUpdates) locationMethods.startLocationUpdates()
     }
 
     /**
@@ -119,6 +124,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+
         mMap = googleMap
         locationMethods = LocationMethods(this, mMap)
         locationMethods.centerMapOnMyLocation()
@@ -143,26 +149,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
         //  geofencePendingIntent.send()
 
-        mMap.setOnInfoWindowClickListener {
-
-            var currentLocation = locationMethods.getLastKnownLocation()
-
-            if (!(it.tag as Quest).isAnswered) {
-                if (currentLocation != null) {
-                    if (locationMethods.getDistanceFromLatLonInMeters(
-                                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
-                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
-                        showQuestDialog(it.tag as Quest)
-                    } else {
-                        Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
-            }
-        }
+//        mMap.setOnInfoWindowClickListener {
+//
+//            var currentLocation = locationMethods.getLastKnownLocation()
+//
+//            if (!(it.tag as Quest).isAnswered) {
+//                if (currentLocation != null) {
+//                    if (locationMethods.getDistanceFromLatLonInMeters(
+//                                    LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
+//                                    it.position) < Constants.GEOFENCE_RADIUS_IN_METERS) {
+//                        showQuestDialog(it.tag as Quest)
+//                    } else {
+//                        Toast.makeText(this, "Too far!", Toast.LENGTH_SHORT).show()
+//                    }
+//                } else {
+//                    Toast.makeText(this, "Location is null", Toast.LENGTH_SHORT).show()
+//                }
+//            } else {
+//                Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
+//            }
+//        }
 
     }
 
@@ -251,5 +257,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 Log.i(TAG, "Failed to add geofence")
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
+        savedInstanceState ?: return
+
+        // Update the value of requestingLocationUpdates from the Bundle.
+        if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+            requestingLocationUpdates = savedInstanceState.getBoolean(
+                    REQUESTING_LOCATION_UPDATES_KEY)
+        }
+
+        // ...
+
+        // Update UI to match restored state
+//        updateUI()
     }
 }

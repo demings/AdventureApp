@@ -18,53 +18,28 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
+import android.content.Context.LOCATION_SERVICE
+import android.support.v4.content.ContextCompat.getSystemService
+import com.facebook.FacebookSdk.getApplicationContext
+
 
 class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
 
-    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
-    private val REQUEST_CHECK_SETTINGS = 0x1
+    private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
+    private var REQUEST_CHECK_SETTINGS = 0x1
+    lateinit var locationCallback: LocationCallback
+    lateinit var locationRequest: LocationRequest
     val fusedLocationClient: FusedLocationProviderClient
     val context: Context
     val map: GoogleMap
 
     constructor(context: Context, map: GoogleMap) {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         this.map = map
         this.context = context
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
-//        val locationRequest = LocationRequest().apply {
-//            interval = 10000
-//            fastestInterval = 5000
-//            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-//        }
-//
-//        val builder = LocationSettingsRequest.Builder()
-//                .addLocationRequest(locationRequest)
-//
-//        val client: SettingsClient = LocationServices.getSettingsClient(context)
-//        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-//
-//        task.addOnSuccessListener { locationSettingsResponse ->
-//            // All location settings are satisfied. The client can initialize
-//            // location requests here.
-//            // ...
-//            centerMapOnMyLocation()
-//        }
-//
-//        task.addOnFailureListener { exception ->
-//            if (exception is ResolvableApiException){
-//                // Location settings are not satisfied, but this can be fixed
-//                // by showing the user a dialog.
-//                try {
-//                    // Show the dialog by calling startResolutionForResult(),
-//                    // and check the result in onActivityResult().
-//                    exception.startResolutionForResult(context as Activity?,
-//                            REQUEST_CHECK_SETTINGS)
-//                } catch (sendEx: IntentSender.SendIntentException) {
-//                    // Ignore the error.
-//                }
-//            }
-//        }
+        createLocationRequest()
+
     }
 
     fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {
@@ -85,22 +60,6 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
         return deg * (Math.PI/180)
     }
 
-    fun getLastKnownLocation(): Location?{
-        //checks if location permission is granted
-        var location: Location? = null
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            requestLocationPermission()
-        } else {
-            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val criteria = Criteria()
-
-            location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
-        }
-
-        return location
-    }
 
     fun requestLocationPermission(){
         var activity: Activity = context as Activity
@@ -133,23 +92,80 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
         }
     }
 
+    fun startLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission()
+        }else {
+            fusedLocationClient.requestLocationUpdates(locationRequest,
+                    locationCallback,
+                    null /* Looper */)
+        }
+    }
+
     fun centerMapOnMyLocation() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission()
+        }else {
+            map.isMyLocationEnabled = true
+            fusedLocationClient.lastLocation
+                    .addOnSuccessListener { location: Location? ->
+                        // Got last known location. In some rare situations this can be null.
 
-        val location = getLastKnownLocation()
-        if (location != null) {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13f))
+                        if (location != null) {
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13f))
 
-            val cameraPosition = CameraPosition.Builder()
-                    .target(LatLng(location.latitude, location.longitude))      // Sets the center of the map to location user
-                    .zoom(17f)                   // Sets the zoom
-                    .bearing(90f)                // Sets the orientation of the camera to east
-                    .tilt(40f)                   // Sets the tilt of the camera to 30 degrees
-                    .build()                   // Creates a CameraPosition from the builder
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-        }else{
-            Toast.makeText(context, "Location is null", Toast.LENGTH_SHORT).show()
+                            val cameraPosition = CameraPosition.Builder()
+                                    .target(LatLng(location.latitude, location.longitude))      // Sets the center of the map to location user
+                                    .zoom(17f)                   // Sets the zoom
+                                    .bearing(90f)                // Sets the orientation of the camera to east
+                                    .tilt(40f)                   // Sets the tilt of the camera to 30 degrees
+                                    .build()                   // Creates a CameraPosition from the builder
+                            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+                        } else {
+                            Toast.makeText(context, "Location is null", Toast.LENGTH_SHORT).show()
+                        }
+//                        Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
+                    }
+        }
+    }
+
+    fun createLocationRequest() {
+        val locationRequest = LocationRequest().apply {
+            interval = 10000
+            fastestInterval = 5000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
-        //  Log.i(TAG, String.format("Current location: lat %s; long %s", location.latitude.toString(), location.longitude.toString()))
+        val builder = LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest)
+
+// ...
+
+        val client: SettingsClient = LocationServices.getSettingsClient(context)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+
+
+        task.addOnSuccessListener { locationSettingsResponse ->
+            // All location settings are satisfied. The client can initialize
+            // location requests here.
+            // ...
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException){
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    exception.startResolutionForResult(context as Activity,
+                            REQUEST_CHECK_SETTINGS)
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
     }
 }
