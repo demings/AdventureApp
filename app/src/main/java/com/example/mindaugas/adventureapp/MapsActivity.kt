@@ -39,9 +39,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val RC_SIGN_IN = 123
 
 
-    // geofencing
-    lateinit var geofencingClient: GeofencingClient
-    private var geofenceList : MutableList<Geofence> = mutableListOf()
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
@@ -50,6 +47,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     }
 
     lateinit var locationMethods: LocationMethods
+    lateinit var geofenceMethods: GeofenceMethods
 
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
@@ -66,7 +64,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        geofencingClient = LocationServices.getGeofencingClient(this)
+        geofenceMethods = GeofenceMethods(this)
 
 
         mAuthStateListener = FirebaseAuth.AuthStateListener(){
@@ -134,8 +132,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                             Log.d(ContentValues.TAG, document.id + " => " + document.data)
 
                             addMarkerToMapWithQuest(quest)
-                            addGeofenceForQuest(document.id, quest)
-                            addGeofencesToClient()
+                            geofenceMethods.addGeofenceForQuest(document.id, quest)
+                            geofenceMethods.addGeofencesToClient(geofencePendingIntent)
+
+                            // add
                         }
                     } else {
                         Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
@@ -212,55 +212,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
         val b = dialogBuilder.create()
         b.show()
-    }
-
-    private fun getGeofencingRequest(): GeofencingRequest {
-        return GeofencingRequest.Builder().apply {
-            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            addGeofences(geofenceList)
-        }.build()
-    }
-
-    fun addGeofenceForQuest(id: String, quest: Quest){
-        geofenceList.add(Geofence.Builder()
-                // Set the request ID of the geofence. This is a string to identify this
-                // geofence.
-                .setRequestId(id)
-
-                // Set the circular region of this geofence.
-                .setCircularRegion(
-                        quest.latitude,
-                        quest.longitude,
-                        Constants.GEOFENCE_RADIUS_IN_METERS
-                )
-
-                // Set the expiration duration of the geofence. This geofence gets automatically
-                // removed after this period of time.
-                .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-
-                // Set the transition types of interest. Alerts are only generated for these
-                // transition. We track entry and exit transitions in this sample.
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-
-                // Create the geofence.
-                .build())
-    }
-
-    @SuppressLint("MissingPermission")
-    fun addGeofencesToClient(){
-        geofencingClient?.addGeofences(getGeofencingRequest(), geofencePendingIntent)?.run {
-            addOnSuccessListener {
-                // Geofences added
-                // ...
-
-                Log.i(TAG, "Geofence added succesfully")
-            }
-            addOnFailureListener {
-                // Failed to add geofences
-                // ...
-                Log.i(TAG, "Failed to add geofence")
-            }
-        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {

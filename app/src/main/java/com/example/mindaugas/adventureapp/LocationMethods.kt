@@ -27,9 +27,9 @@ class LocationMethods{
 
     var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private var REQUEST_CHECK_SETTINGS = 0x1
-    val fusedLocationClient: FusedLocationProviderClient
-    val context: Context
-    val map: GoogleMap
+    lateinit var  fusedLocationClient: FusedLocationProviderClient
+    lateinit var context: Context
+    lateinit var map: GoogleMap
 
     constructor(context: Context, map: GoogleMap) {
         this.map = map
@@ -37,6 +37,10 @@ class LocationMethods{
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
         createLocationRequest()
+    }
+
+    constructor(context: Context){
+        this.context = context
     }
 
     fun getDistanceFromLatLonInMeters(location1: LatLng, location2: LatLng): Double {
