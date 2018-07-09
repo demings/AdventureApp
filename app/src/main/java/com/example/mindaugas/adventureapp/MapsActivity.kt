@@ -35,7 +35,6 @@ import java.util.*
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private lateinit var mMap: GoogleMap
-    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
 
@@ -151,7 +150,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
-                requestLocationPermission()
+                locationMethods.requestLocationPermission()
             }else {
                 locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     currentLocation = location
@@ -266,7 +265,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
-            MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
+            locationMethods.MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
@@ -289,11 +288,5 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 // Ignore all other requests.
             }
         }
-    }
-
-    fun requestLocationPermission(){
-        ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 }
