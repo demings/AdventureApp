@@ -13,7 +13,7 @@ import com.google.android.gms.location.GeofencingEvent
 
 class GeofenceTransitionsIntentService : IntentService("Quest proximity service") {
     // ...
-    val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    lateinit var mNotificationManager: NotificationManager
 
     override fun onHandleIntent(intent: Intent?) {
 
@@ -26,6 +26,8 @@ class GeofenceTransitionsIntentService : IntentService("Quest proximity service"
             return
         }
 
+
+        mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         // Get the transition type.
         val geofenceTransition = geofencingEvent.geofenceTransition
 
