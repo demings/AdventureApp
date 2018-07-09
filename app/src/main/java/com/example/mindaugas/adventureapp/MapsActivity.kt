@@ -37,8 +37,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
 
-    private val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
-    protected val REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key"
 
 
     // geofencing
@@ -62,7 +60,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     var requestingLocationUpdates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        updateValuesFromBundle(savedInstanceState)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -111,7 +108,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onResume() {
         super.onResume()
         mFirebaseAuth.addAuthStateListener(mAuthStateListener)
-        if (requestingLocationUpdates) locationMethods.startLocationUpdates()
     }
 
     /**
@@ -151,7 +147,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 //        mMap.setOnInfoWindowClickListener {
 //
-//            var currentLocation = locationMethods.getLastKnownLocation()
+////            var currentLocation = locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener {  }
 //
 //            if (!(it.tag as Quest).isAnswered) {
 //                if (currentLocation != null) {
@@ -257,25 +253,5 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 Log.i(TAG, "Failed to add geofence")
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
-        super.onSaveInstanceState(outState)
-    }
-
-    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
-        savedInstanceState ?: return
-
-        // Update the value of requestingLocationUpdates from the Bundle.
-        if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
-            requestingLocationUpdates = savedInstanceState.getBoolean(
-                    REQUESTING_LOCATION_UPDATES_KEY)
-        }
-
-        // ...
-
-        // Update UI to match restored state
-//        updateUI()
     }
 }

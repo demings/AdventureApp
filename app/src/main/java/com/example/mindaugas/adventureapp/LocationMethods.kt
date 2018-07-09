@@ -27,8 +27,6 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
 
     private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private var REQUEST_CHECK_SETTINGS = 0x1
-    lateinit var locationCallback: LocationCallback
-    lateinit var locationRequest: LocationRequest
     val fusedLocationClient: FusedLocationProviderClient
     val context: Context
     val map: GoogleMap
@@ -89,17 +87,6 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
             else -> {
                 // Ignore all other requests.
             }
-        }
-    }
-
-    fun startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestLocationPermission()
-        }else {
-            fusedLocationClient.requestLocationUpdates(locationRequest,
-                    locationCallback,
-                    null /* Looper */)
         }
     }
 
