@@ -23,7 +23,7 @@ import android.support.v4.content.ContextCompat.getSystemService
 import com.facebook.FacebookSdk.getApplicationContext
 
 
-class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
+class LocationMethods{
 
     private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
     private var REQUEST_CHECK_SETTINGS = 0x1
@@ -66,29 +66,7 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
                 MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
-                // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    centerMapOnMyLocation()
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    requestLocationPermission()
-                }
-                return
-            }
 
-        // Add other 'when' lines to check for other
-        // permissions this app might request.
-            else -> {
-                // Ignore all other requests.
-            }
-        }
-    }
 
     fun centerMapOnMyLocation() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -138,6 +116,7 @@ class LocationMethods : ActivityCompat.OnRequestPermissionsResultCallback{
             // All location settings are satisfied. The client can initialize
             // location requests here.
             // ...
+            centerMapOnMyLocation()
         }
 
         task.addOnFailureListener { exception ->

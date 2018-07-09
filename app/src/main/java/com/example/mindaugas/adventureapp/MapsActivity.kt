@@ -37,6 +37,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
 
+    private var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
 
 
     // geofencing
@@ -251,6 +252,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 // Failed to add geofences
                 // ...
                 Log.i(TAG, "Failed to add geofence")
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+//                    centerMapOnMyLocation()
+                    locationMethods.createLocationRequest()
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    locationMethods.requestLocationPermission()
+                }
+                return
+            }
+
+        // Add other 'when' lines to check for other
+        // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
             }
         }
     }
