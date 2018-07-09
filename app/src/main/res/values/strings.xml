@@ -34,4 +34,8 @@
     <string name="permission_denied_explanation">Permission was denied, but is needed for core
         functionality.</string>
     <string name="settings">Settings</string>
+
+    <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
+    <string name="facebook_application_id" translatable="false">199394540758143</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">fb199394540758143</string>
 </resources>
