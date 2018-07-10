@@ -41,7 +41,8 @@ class GeofenceTransitionsIntentService : IntentService("Quest proximity service"
 
             Log.i("Quest", "Found")
         }else if(geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
-            mNotificationManager.cancel(0)
+            mNotificationManager.cancelAll()
+            // Todo fix this to cancel only one notification
 
         }
         else {
