@@ -89,10 +89,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         addQuestButton.setOnClickListener{
-            //TODO: start addQuestActivity
-
             var builder = PlacePicker.IntentBuilder()
-
             startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST)
         }
     }
@@ -114,6 +111,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 var place = PlacePicker.getPlace(data, this)
                 var toastMsg = String.format("Place: %s", place.name)
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
+                //TODO: show addQuest dialog
+                showAddQuestDialog(place)
             }
         }
     }
@@ -225,6 +224,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 //TODO: don't reset the dialog
                 showQuestDialog(quest)
             }
+        }
+        dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
+            //pass
+        }
+        val b = dialogBuilder.create()
+        b.show()
+    }
+
+    fun showAddQuestDialog(place: Place) {
+        val dialogBuilder = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.add_quest_dialog, null)
+        dialogBuilder.setView(dialogView)
+        val questDescription = dialogView.findViewById<View>(R.id.questDescription) as EditText
+        val questName = dialogView.findViewById<View>(R.id.questName) as EditText
+//        Toast.makeText(this, editTextName.text, Toast.LENGTH_SHORT).show()
+
+        dialogBuilder.setTitle("Enter quest info")
+//        dialogBuilder.setMessage(quest.description)
+        dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
+            Toast.makeText(this, "questAdded!", Toast.LENGTH_SHORT).show()
+            //TODO: add quest to firebase
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
