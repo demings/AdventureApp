@@ -170,10 +170,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                         Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
                     }
                 }
-
             }
         }
-
     }
 
 
@@ -200,7 +198,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             if(editText.text.toString().equals(quest.answer)){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
                 quest.isAnswered = true
-                //TODO: change marker color to green
+                //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
                 //TODO: don't reset the dialog
