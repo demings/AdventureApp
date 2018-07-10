@@ -22,6 +22,8 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.places.Place
+import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -29,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.android.synthetic.main.activity_maps.*
 import java.util.*
 
 
@@ -37,7 +40,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
-
+    private val PLACE_PICKER_REQUEST = 1
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
@@ -54,6 +57,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
 
     var quests = mutableMapOf<String, Quest>()
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,7 +87,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 RC_SIGN_IN)
             }
         }
+
+        addQuestButton.setOnClickListener{
+            var builder = PlacePicker.IntentBuilder()
+            startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST)
+        }
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -93,6 +103,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             }else if(resultCode == Activity.RESULT_CANCELED){
                 Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
                 finish()
+            }
+        }else
+
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                var place = PlacePicker.getPlace(data, this)
+                var toastMsg = String.format("Place: %s", place.name)
+                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
+                showAddQuestDialog(place)
             }
         }
     }
@@ -122,25 +141,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         locationMethods = LocationMethods(this, mMap)
         locationMethods.centerMapOnMyLocation()
 
-        firebase.firestore.collection("quests")
-                .get()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        for (document in task.result) {
-                            var quest: Quest = document.toObject(Quest::class.java)
-                            quests.put(document.id, quest)
-                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
-
-                            addMarkerToMapWithQuest(quest)
-                            geofenceMethods.addGeofenceForQuest(document.id, quest)
-                            geofenceMethods.addGeofencesToClient(geofencePendingIntent)
-
-                            // add
-                        }
-                    } else {
-                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
-                    }
-                }
+        getQuestFromFireStore()
 
         geofencePendingIntent.send()
 
@@ -170,12 +171,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                         Toast.makeText(this, "Already answered", Toast.LENGTH_SHORT).show()
                     }
                 }
-
             }
         }
-
     }
 
+    fun getQuestFromFireStore(){
+        firebase.firestore.collection("quests")
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        for (document in task.result) {
+                            var quest: Quest = document.toObject(Quest::class.java)
+                            quests.put(document.id, quest)
+                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
+
+                            addMarkerToMapWithQuest(quest)
+                            geofenceMethods.addGeofenceForQuest(document.id, quest)
+                            geofenceMethods.addGeofencesToClient(geofencePendingIntent)
+
+                            // add
+                        }
+                    } else {
+                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+                    }
+                }
+    }
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
@@ -200,12 +220,46 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             if(editText.text.toString().equals(quest.answer)){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
                 quest.isAnswered = true
-                //TODO: change marker color to green
+                //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
                 //TODO: don't reset the dialog
                 showQuestDialog(quest)
             }
+        }
+        dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
+            //pass
+        }
+        val b = dialogBuilder.create()
+        b.show()
+    }
+
+    fun showAddQuestDialog(place: Place) {
+        val dialogBuilder = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.add_quest_dialog, null)
+        dialogBuilder.setView(dialogView)
+        val questDescription = dialogView.findViewById<View>(R.id.questDescription) as EditText
+        val questName = dialogView.findViewById<View>(R.id.questName) as EditText
+        val questAnswer = dialogView.findViewById<View>(R.id.questAnswer) as EditText
+//        Toast.makeText(this, editTextName.text, Toast.LENGTH_SHORT).show()
+
+        dialogBuilder.setTitle("Enter quest info")
+//        dialogBuilder.setMessage(quest.description)
+        dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
+
+            var quest = Quest(
+                    questName.text.toString(),
+                    questDescription.text.toString(),
+                    questAnswer.text.toString(),
+                    place.latLng.latitude,
+                    place.latLng.longitude,
+                    false
+            )
+
+            firebase.addQuest(quest)
+
+            getQuestFromFireStore()
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
