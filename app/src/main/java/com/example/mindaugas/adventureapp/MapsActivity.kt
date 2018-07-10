@@ -40,7 +40,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
     private val RC_SIGN_IN = 123
-    private val PLACE_PICKER_REQUEST = 1
+    private val PLACE_PICKER_REQUEST = 124
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
