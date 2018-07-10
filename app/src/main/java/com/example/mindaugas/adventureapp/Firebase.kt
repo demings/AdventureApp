@@ -11,7 +11,9 @@ class Firebase {
     fun addQuest(quest: Quest){
         firestore.collection("quests")
                 .add(quest)
-                .addOnSuccessListener { documentReference -> Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.id) }
+                .addOnSuccessListener { documentReference ->
+                    Log.i(TAG, "DocumentSnapshot added with ID: " + documentReference.id)
+                }
                 .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
     }
 

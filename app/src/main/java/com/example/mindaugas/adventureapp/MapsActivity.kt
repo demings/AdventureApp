@@ -111,7 +111,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 var place = PlacePicker.getPlace(data, this)
                 var toastMsg = String.format("Place: %s", place.name)
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
-                //TODO: show addQuest dialog
                 showAddQuestDialog(place)
             }
         }
@@ -142,25 +141,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         locationMethods = LocationMethods(this, mMap)
         locationMethods.centerMapOnMyLocation()
 
-        firebase.firestore.collection("quests")
-                .get()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        for (document in task.result) {
-                            var quest: Quest = document.toObject(Quest::class.java)
-                            quests.put(document.id, quest)
-                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
-
-                            addMarkerToMapWithQuest(quest)
-                            geofenceMethods.addGeofenceForQuest(document.id, quest)
-                            geofenceMethods.addGeofencesToClient(geofencePendingIntent)
-
-                            // add
-                        }
-                    } else {
-                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
-                    }
-                }
+        getQuestFromFireStore()
 
         geofencePendingIntent.send()
 
@@ -194,6 +175,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
+    fun getQuestFromFireStore(){
+        firebase.firestore.collection("quests")
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        for (document in task.result) {
+                            var quest: Quest = document.toObject(Quest::class.java)
+                            quests.put(document.id, quest)
+                            Log.d(ContentValues.TAG, document.id + " => " + document.data)
+
+                            addMarkerToMapWithQuest(quest)
+                            geofenceMethods.addGeofenceForQuest(document.id, quest)
+                            geofenceMethods.addGeofencesToClient(geofencePendingIntent)
+
+                            // add
+                        }
+                    } else {
+                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+                    }
+                }
+    }
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
@@ -239,13 +241,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setView(dialogView)
         val questDescription = dialogView.findViewById<View>(R.id.questDescription) as EditText
         val questName = dialogView.findViewById<View>(R.id.questName) as EditText
+        val questAnswer = dialogView.findViewById<View>(R.id.questAnswer) as EditText
 //        Toast.makeText(this, editTextName.text, Toast.LENGTH_SHORT).show()
 
         dialogBuilder.setTitle("Enter quest info")
 //        dialogBuilder.setMessage(quest.description)
         dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
-            Toast.makeText(this, "questAdded!", Toast.LENGTH_SHORT).show()
-            //TODO: add quest to firebase
+
+            var quest = Quest(
+                    questName.text.toString(),
+                    questDescription.text.toString(),
+                    questAnswer.text.toString(),
+                    place.latLng.latitude,
+                    place.latLng.longitude,
+                    false
+            )
+
+            firebase.addQuest(quest)
+
+            getQuestFromFireStore()
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
