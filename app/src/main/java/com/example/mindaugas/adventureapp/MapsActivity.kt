@@ -52,14 +52,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     lateinit var locationMethods: LocationMethods
     lateinit var geofenceMethods: GeofenceMethods
+    lateinit var authenticationMethods: AuthenticationMethods
 
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
     lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
 
     var quests = mutableMapOf<String, Quest>()
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,24 +69,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofenceMethods = GeofenceMethods(this)
-
-
-        mAuthStateListener = FirebaseAuth.AuthStateListener(){
-            var user = it.currentUser
-            if(user != null){
-                //user is signed in
-//                Toast.makeText(this, "Welcome to adventure app", Toast.LENGTH_SHORT).show()
-            }else{
-                //user is signed out
-                startActivityForResult(
-                    AuthUI.getInstance()
-                        .createSignInIntentBuilder().setIsSmartLockEnabled(!BuildConfig.DEBUG)
-                        .setAvailableProviders(Arrays.asList(
-                                AuthUI.IdpConfig.FacebookBuilder().build()))
-                        .build(),
-                Constants.RC_SIGN_IN)
-            }
-        }
+        authenticationMethods = AuthenticationMethods(this)
 
         addQuestButton.setOnClickListener{
             var builder = PlacePicker.IntentBuilder()
@@ -119,12 +101,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onPause() {
         super.onPause()
-        mFirebaseAuth.removeAuthStateListener(mAuthStateListener)
+        authenticationMethods.removeAuthStateListener()
     }
 
     override fun onResume() {
         super.onResume()
-        mFirebaseAuth.addAuthStateListener(mAuthStateListener)
+        authenticationMethods.addAuthStateListener()
     }
 
     /**
