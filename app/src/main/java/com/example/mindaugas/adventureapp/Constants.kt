@@ -9,5 +9,6 @@ class Constants {
         const val PLACE_PICKER_REQUEST = 124
         const val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
         const val REQUEST_CHECK_SETTINGS = 1
+        var userID: String = ""
     }
 }

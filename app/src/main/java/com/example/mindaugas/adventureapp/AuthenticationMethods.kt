@@ -27,6 +27,7 @@ class AuthenticationMethods {
         mAuthStateListener = FirebaseAuth.AuthStateListener{
             var user = it.currentUser
             if(user != null){
+                Constants.userID = user.uid
                 //user is signed in
 //                Toast.makeText(this, "Welcome to adventure app", Toast.LENGTH_SHORT).show()
             }else{

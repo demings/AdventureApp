@@ -56,8 +56,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     var firebase = Firebase()
 
-    var quests = mutableMapOf<String, Quest>()
-    var isAnswered = mutableMapOf<String, Boolean>()
+
+
+    companion object {
+        var isAnswered = mutableMapOf<String, Boolean>()
+        var quests = mutableMapOf<String, Quest>()
+    }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +88,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         if(requestCode == RC_SIGN_IN){
             if(resultCode == Activity.RESULT_OK){
                 Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show()
+                //TODO: get isAnswered collection
+//                getIsAnsweredFromFireStore()
             }else if(resultCode == Activity.RESULT_CANCELED){
                 Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
                 finish()
@@ -138,7 +146,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     currentLocation = location
 //                    if (!(it.tag as Quest).isAnswered) {
-                    if(isAnswered[(it.tag as Quest).ID]!! == false){
+                    if(!isAnswered[(it.tag as Quest).ID]!!){
                         if (currentLocation != null) {
                             if (locationMethods.getDistanceFromLatLonInMeters(
                                             LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
@@ -173,7 +181,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                             geofenceMethods.addGeofencesToClient(geofencePendingIntent)
 
                             if(!isAnswered.containsKey(document.id)){
-                                isAnswered.put(document.id, false)
+                                isAnswered[document.id] = false
                             }
                         }
                     } else {
@@ -181,6 +189,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     }
                 }
     }
+
+//    fun getIsAnsweredFromFireStore(){
+////        try {
+//            firebase.firestore.collection("isAnswered").document(Constants.userID)
+//                    .get()
+//                    .addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            if(task.result.exists()) {
+//                                isAnswered = task.result.data!!.toMutableMap() as MutableMap<String, Boolean>
+//                            }
+//                        } else {
+//                            Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+//                        }
+//                    }
+////        }catch (e: Exception){
+////            Log.w(ContentValues.TAG, "Error getting documents.", e)
+////            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
+////        }
+//    }
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
@@ -206,6 +233,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
 //                quest.isAnswered = true
                 isAnswered.put(quest.ID, true)
+                firebase.addCollection(isAnswered)
                 //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
