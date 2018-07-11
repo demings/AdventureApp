@@ -17,6 +17,8 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import com.example.mindaugas.adventureapp.Constants.Companion.PLACE_PICKER_REQUEST
+import com.example.mindaugas.adventureapp.Constants.Companion.RC_SIGN_IN
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
@@ -39,8 +41,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private lateinit var mMap: GoogleMap
     private val TAG = MapsActivity::class.java.simpleName
-    private val RC_SIGN_IN = 123
-    private val PLACE_PICKER_REQUEST = 124
+
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
@@ -84,7 +85,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                         .setAvailableProviders(Arrays.asList(
                                 AuthUI.IdpConfig.FacebookBuilder().build()))
                         .build(),
-                RC_SIGN_IN)
+                Constants.RC_SIGN_IN)
             }
         }
 
@@ -270,7 +271,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
-            locationMethods.MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
+            Constants.MY_PERMISSIONS_REQUEST_ACCESS_LOCATION -> {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the

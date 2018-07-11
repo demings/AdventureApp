@@ -25,8 +25,6 @@ import com.facebook.FacebookSdk.getApplicationContext
 
 class LocationMethods{
 
-    var MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
-    private var REQUEST_CHECK_SETTINGS = 0x1
     lateinit var  fusedLocationClient: FusedLocationProviderClient
     lateinit var context: Context
     lateinit var map: GoogleMap
@@ -94,7 +92,7 @@ class LocationMethods{
     fun requestLocationPermission(){
         ActivityCompat.requestPermissions(context as Activity,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
+                Constants.MY_PERMISSIONS_REQUEST_ACCESS_LOCATION)
     }
 
     fun createLocationRequest() {
@@ -128,7 +126,7 @@ class LocationMethods{
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     exception.startResolutionForResult(context as Activity,
-                            REQUEST_CHECK_SETTINGS)
+                            Constants.REQUEST_CHECK_SETTINGS)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
                 }
