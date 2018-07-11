@@ -52,11 +52,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     lateinit var locationMethods: LocationMethods
     lateinit var geofenceMethods: GeofenceMethods
-    lateinit var authenticationMethods: AuthenticationMethods
 
-    var firebase = Firebase()
-    var mFirebaseAuth =  FirebaseAuth.getInstance()
-    lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
+    lateinit var firebase : Firebase
 
     var quests = mutableMapOf<String, Quest>()
 
@@ -69,7 +66,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofenceMethods = GeofenceMethods(this)
-        authenticationMethods = AuthenticationMethods(this)
+        firebase = Firebase(this)
 
         addQuestButton.setOnClickListener{
             var builder = PlacePicker.IntentBuilder()
@@ -101,12 +98,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onPause() {
         super.onPause()
-        authenticationMethods.removeAuthStateListener()
+        firebase.removeAuthStateListener()
     }
 
     override fun onResume() {
         super.onResume()
-        authenticationMethods.addAuthStateListener()
+        firebase.addAuthStateListener()
     }
 
     /**
