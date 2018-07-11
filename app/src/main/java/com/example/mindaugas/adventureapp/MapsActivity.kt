@@ -52,10 +52,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     lateinit var locationMethods: LocationMethods
     lateinit var geofenceMethods: GeofenceMethods
-    lateinit var authenticationMethods: AuthenticationMethods
 
-    var firebase = Firebase()
 
+    lateinit var firebase : Firebase
 
 
     companion object {
@@ -74,7 +73,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofenceMethods = GeofenceMethods(this)
-        authenticationMethods = AuthenticationMethods(this)
+        firebase = Firebase(this)
 
         addQuestButton.setOnClickListener{
             var builder = PlacePicker.IntentBuilder()
@@ -88,8 +87,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         if(requestCode == RC_SIGN_IN){
             if(resultCode == Activity.RESULT_OK){
                 Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show()
-                //TODO: get isAnswered collection
-//                getIsAnsweredFromFireStore()
             }else if(resultCode == Activity.RESULT_CANCELED){
                 Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
                 finish()
@@ -108,12 +105,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onPause() {
         super.onPause()
-        authenticationMethods.removeAuthStateListener()
+        firebase.removeAuthStateListener()
     }
 
     override fun onResume() {
         super.onResume()
-        authenticationMethods.addAuthStateListener()
+        firebase.addAuthStateListener()
     }
 
     /**
@@ -190,24 +187,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 }
     }
 
-//    fun getIsAnsweredFromFireStore(){
-////        try {
-//            firebase.firestore.collection("isAnswered").document(Constants.userID)
-//                    .get()
-//                    .addOnCompleteListener { task ->
-//                        if (task.isSuccessful) {
-//                            if(task.result.exists()) {
-//                                isAnswered = task.result.data!!.toMutableMap() as MutableMap<String, Boolean>
-//                            }
-//                        } else {
-//                            Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
-//                        }
-//                    }
-////        }catch (e: Exception){
-////            Log.w(ContentValues.TAG, "Error getting documents.", e)
-////            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
-////        }
-//    }
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
