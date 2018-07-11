@@ -55,10 +55,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     lateinit var authenticationMethods: AuthenticationMethods
 
     var firebase = Firebase()
-    var mFirebaseAuth =  FirebaseAuth.getInstance()
-    lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
 
     var quests = mutableMapOf<String, Quest>()
+    var isAnswered = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,7 +123,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         locationMethods = LocationMethods(this, mMap)
         locationMethods.centerMapOnMyLocation()
 
-        getQuestFromFireStore()
+        getQuestsFromFireStore()
 
         geofencePendingIntent.send()
 
@@ -138,7 +137,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             }else {
                 locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     currentLocation = location
-                    if (!(it.tag as Quest).isAnswered) {
+//                    if (!(it.tag as Quest).isAnswered) {
+                    if(isAnswered[(it.tag as Quest).ID]!! == false){
                         if (currentLocation != null) {
                             if (locationMethods.getDistanceFromLatLonInMeters(
                                             LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
@@ -158,7 +158,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
-    fun getQuestFromFireStore(){
+    fun getQuestsFromFireStore(){
         firebase.firestore.collection("quests")
                 .get()
                 .addOnCompleteListener { task ->
@@ -172,7 +172,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                             geofenceMethods.addGeofenceForQuest(document.id, quest)
                             geofenceMethods.addGeofencesToClient(geofencePendingIntent)
 
-                            // add
+                            if(!isAnswered.containsKey(document.id)){
+                                isAnswered.put(document.id, false)
+                            }
                         }
                     } else {
                         Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
@@ -202,7 +204,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setPositiveButton("Submit") { dialog, whichButton ->
             if(editText.text.toString().equals(quest.answer)){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
-                quest.isAnswered = true
+//                quest.isAnswered = true
+                isAnswered.put(quest.ID, true)
                 //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
@@ -232,17 +235,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
 
             var quest = Quest(
+                    UUID.randomUUID().toString(),
                     questName.text.toString(),
                     questDescription.text.toString(),
                     questAnswer.text.toString(),
                     place.latLng.latitude,
-                    place.latLng.longitude,
-                    false
+                    place.latLng.longitude
             )
 
             firebase.addQuest(quest)
 
-            getQuestFromFireStore()
+            getQuestsFromFireStore()
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass

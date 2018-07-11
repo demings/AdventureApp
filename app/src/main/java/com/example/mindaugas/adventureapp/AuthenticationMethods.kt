@@ -16,7 +16,7 @@ import java.util.*
 
 class AuthenticationMethods {
 
-    lateinit var activity : Activity
+    var activity : Activity
     var firebase = Firebase()
     var mFirebaseAuth =  FirebaseAuth.getInstance()
     var mAuthStateListener: FirebaseAuth.AuthStateListener
@@ -24,7 +24,7 @@ class AuthenticationMethods {
     constructor(context: Context) {
         activity = context as FragmentActivity
 
-        mAuthStateListener = FirebaseAuth.AuthStateListener(){
+        mAuthStateListener = FirebaseAuth.AuthStateListener{
             var user = it.currentUser
             if(user != null){
                 //user is signed in
