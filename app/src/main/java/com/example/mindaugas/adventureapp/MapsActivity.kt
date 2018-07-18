@@ -142,8 +142,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             }else {
                 locationMethods.fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     currentLocation = location
-//                    if (!(it.tag as Quest).isAnswered) {
-                    if(!isAnswered[(it.tag as Quest).ID]!!){
+                    if(isAnswered[(it.tag as Quest).ID] == null || !isAnswered[(it.tag as Quest).ID]!!){
                         if (currentLocation != null) {
                             if (locationMethods.getDistanceFromLatLonInMeters(
                                             LatLng(currentLocation!!.latitude, currentLocation!!.longitude),
