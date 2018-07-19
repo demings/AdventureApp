@@ -155,8 +155,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
-    fun updateScore(){
-        questScoreTextView.setText(String.format("Your score: %d", isAnswered.size))
+    fun updateScoreView(){
+        questScoreTextView.text = String.format("Your score: %d", isAnswered.size)
     }
 
     fun getQuestsFromFireStore(){
@@ -166,7 +166,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     if (task.isSuccessful) {
                         for (document in task.result) {
                             var quest: Quest = document.toObject(Quest::class.java)
-                            quests.put(document.id, quest)
+                            quests[document.id] = quest
                             Log.d(ContentValues.TAG, document.id + " => " + document.data)
 
                             addMarkerToMapWithQuest(quest)
@@ -178,7 +178,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     }
                 }
     }
-
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
@@ -204,7 +203,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
 //                quest.isAnswered = true
                 isAnswered[quest.ID] = true
-                firebase.addCollection(isAnswered)
+                currentUser.score = isAnswered.size
+                firebase.setIsAnswered(isAnswered)
+                firebase.setUser(currentUser)
+                updateScoreView()
                 //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
