@@ -45,6 +45,7 @@
         android:layout_height="wrap_content"
         android:gravity="center|top"
         android:paddingTop="16dp"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:text="Your score: 0"/>
 
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
