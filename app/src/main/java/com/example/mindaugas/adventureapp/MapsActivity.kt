@@ -1,7 +1,6 @@
 package com.example.mindaugas.adventureapp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
@@ -9,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -19,11 +17,6 @@ import android.widget.EditText
 import android.widget.Toast
 import com.example.mindaugas.adventureapp.Constants.Companion.PLACE_PICKER_REQUEST
 import com.example.mindaugas.adventureapp.Constants.Companion.RC_SIGN_IN
-import com.firebase.ui.auth.AuthUI
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.GoogleMap
@@ -32,7 +25,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_maps.*
 import java.util.*
 
@@ -60,6 +52,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     companion object {
         var isAnswered = mutableMapOf<String, Boolean>()
         var quests = mutableMapOf<String, Quest>()
+        var currentUser: User = User()
     }
 
 
@@ -162,6 +155,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
+    fun updateScoreView(){
+        questScoreTextView.text = String.format("Your score: %d", isAnswered.size)
+    }
+
     fun getQuestsFromFireStore(){
         firebase.firestore.collection("quests")
                 .get()
@@ -169,23 +166,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     if (task.isSuccessful) {
                         for (document in task.result) {
                             var quest: Quest = document.toObject(Quest::class.java)
-                            quests.put(document.id, quest)
+                            quests[document.id] = quest
                             Log.d(ContentValues.TAG, document.id + " => " + document.data)
 
                             addMarkerToMapWithQuest(quest)
                             geofenceMethods.addGeofenceForQuest(document.id, quest)
                             geofenceMethods.addGeofencesToClient(geofencePendingIntent)
-
-                            if(!isAnswered.containsKey(document.id)){
-                                isAnswered[document.id] = false
-                            }
                         }
                     } else {
                         Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
                     }
                 }
     }
-
 
     fun addMarkerToMapWithQuest(quest: Quest){
         var marker : Marker = mMap.addMarker(MarkerOptions()
@@ -210,8 +202,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             if(editText.text.toString().equals(quest.answer)){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
 //                quest.isAnswered = true
-                isAnswered.put(quest.ID, true)
-                firebase.addCollection(isAnswered)
+                isAnswered[quest.ID] = true
+                currentUser.score = isAnswered.size
+                firebase.setIsAnswered(isAnswered)
+                firebase.setUser(currentUser)
+                updateScoreView()
                 //TODO: change marker color
             }else{
                 Toast.makeText(this, "Answer is wrong!", Toast.LENGTH_SHORT).show()
