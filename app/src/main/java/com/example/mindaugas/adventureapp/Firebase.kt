@@ -28,7 +28,8 @@ class Firebase {
             var user = it.currentUser
             if(user != null){
                 //user is signed in
-                Constants.userID = user.uid
+//                Constants.userID = user.uid
+                MapsActivity.currentUser.ID = user.uid
                 getIsAnswered()
             }else{
                 //user is signed out
@@ -57,16 +58,16 @@ class Firebase {
 
     fun addCollection(isAnswered: MutableMap<String, Boolean>){
         firestore.collection("isAnswered")
-                .document(Constants.userID)
+                .document(MapsActivity.currentUser.ID)
                 .set(isAnswered as Map<String, Any>)
                 .addOnSuccessListener { documentReference ->
-                    Log.i(TAG, "DocumentSnapshot added with ID: " + Constants.userID)
+                    Log.i(TAG, "DocumentSnapshot added with ID: " + MapsActivity.currentUser.ID)
                 }
                 .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
     }
 
     fun getIsAnswered() {
-        firestore.collection("isAnswered").document(Constants.userID)
+        firestore.collection("isAnswered").document(MapsActivity.currentUser.ID)
                 .get()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
