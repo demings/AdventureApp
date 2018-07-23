@@ -5,7 +5,9 @@ import android.content.ContentValues
 import android.app.Activity
 import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
 import android.support.v4.app.FragmentActivity
+import android.support.v4.content.ContextCompat.startActivity
 import android.util.Log
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
@@ -26,20 +28,32 @@ class Firebase {
     constructor(context: Context) {
         activity = context as FragmentActivity
 
-        mAuthStateListener = FirebaseAuth.AuthStateListener(){
+        mAuthStateListener = FirebaseAuth.AuthStateListener{
             var user = it.currentUser
             if(user != null){
                 //user is signed in
 //                Constants.userID = user.uid
                 MapsActivity.currentUser.ID = user.uid
                 getIsAnswered()
+
+                activity.signOutButton.setOnClickListener{
+                    AuthUI.getInstance()
+                            .signOut(activity)
+                            .addOnCompleteListener {
+//                                startActivity(Intent(activity, FirebaseAuth.SignInActivity.class))
+                                activity.finish()
+                            }
+                }
+
             }else{
                 //user is signed out
                 activity.startActivityForResult(
                         AuthUI.getInstance()
-                                .createSignInIntentBuilder().setIsSmartLockEnabled(!BuildConfig.DEBUG)
+                                .createSignInIntentBuilder().setIsSmartLockEnabled(false)
                                 .setAvailableProviders(Arrays.asList(
-                                        AuthUI.IdpConfig.FacebookBuilder().build()))
+                                        AuthUI.IdpConfig.FacebookBuilder().build(),
+                                        AuthUI.IdpConfig.GoogleBuilder().build()
+                                ))
                                 .build(),
                         Constants.RC_SIGN_IN)
             }

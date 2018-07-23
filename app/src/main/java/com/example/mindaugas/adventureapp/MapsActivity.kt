@@ -80,6 +80,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         if(requestCode == RC_SIGN_IN){
             if(resultCode == Activity.RESULT_OK){
                 Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show()
+                getQuestsFromFireStore()
             }else if(resultCode == Activity.RESULT_CANCELED){
                 Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show()
                 finish()
