@@ -127,7 +127,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
         mMap.setOnInfoWindowClickListener {
 
-            var currentLocation: Location? = null
+            var currentLocation: Location?
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
