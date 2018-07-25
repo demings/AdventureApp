@@ -1,26 +1,24 @@
 package com.example.mindaugas.adventureapp
 
 
-import android.content.ContentValues
 import android.app.Activity
+import android.content.ContentValues
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.content.Intent
 import android.support.v4.app.FragmentActivity
-import android.support.v4.content.ContextCompat.startActivity
 import android.util.Log
 import com.firebase.ui.auth.AuthUI
+import com.google.android.gms.maps.model.Marker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.*
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_maps.*
+import java.util.*
 
 
 class Firebase {
     var firestore = FirebaseFirestore.getInstance()
     var activity : Activity
-
+//    var mStorageRef = FirebaseStorage.getInstance().reference
 
     var mFirebaseAuth =  FirebaseAuth.getInstance()
     var mAuthStateListener: FirebaseAuth.AuthStateListener
@@ -92,6 +90,22 @@ class Firebase {
                             MapsActivity.isAnswered = task.result.data!!.toMutableMap() as MutableMap<String, Boolean>
                             MapsActivity.currentUser.score = MapsActivity.isAnswered.size
                             activity.questScoreTextView.text = String.format("Your score: %d", MapsActivity.currentUser.score)
+                        }
+                    } else {
+                        Log.w(ContentValues.TAG, "Error getting documents.", task.exception)
+                    }
+                }
+    }
+
+    fun getQuestIcon(questID: String, marker: Marker){
+        firestore.collection("questIcons")
+                .document(questID)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        if (task.result.exists()) {
+
+//                            marker.setIcon()
                         }
                     } else {
                         Log.w(ContentValues.TAG, "Error getting documents.", task.exception)

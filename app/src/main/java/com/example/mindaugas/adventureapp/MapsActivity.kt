@@ -6,8 +6,10 @@ import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
+import android.provider.MediaStore
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -17,6 +19,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.example.mindaugas.adventureapp.Constants.Companion.PLACE_PICKER_REQUEST
 import com.example.mindaugas.adventureapp.Constants.Companion.RC_SIGN_IN
+import com.example.mindaugas.adventureapp.Constants.Companion.REQUEST_IMAGE_CAPTURE
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.GoogleMap
@@ -26,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_maps.*
+import kotlinx.android.synthetic.main.add_quest_dialog.*
 import java.util.*
 
 
@@ -48,6 +52,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     lateinit var firebase : Firebase
 
+    lateinit var lastAddQuestDialog: AlertDialog
 
     companion object {
         var isAnswered = mutableMapOf<String, Boolean>()
@@ -94,7 +99,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
                 showAddQuestDialog(place)
             }
-        }
+        }else
+
+            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+                var extras = data!!.extras
+                var imageBitmap = extras.get("data")
+
+                lastAddQuestDialog.addQuestPhotoButton.setImageBitmap(imageBitmap as Bitmap?)
+//                var mImageView.setImageBitmap(imageBitmap)
+            }
     }
 
     override fun onPause() {
@@ -184,7 +197,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         var marker : Marker = mMap.addMarker(MarkerOptions()
                 .position(com.google.android.gms.maps.model.LatLng(quest.latitude, quest.longitude))
                 .title(quest.name)
-                .snippet(quest.description))
+                .snippet(quest.description)
+        )
 
         marker.tag = quest
     }
@@ -252,9 +266,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
         }
-        val b = dialogBuilder.create()
-        b.show()
+        lastAddQuestDialog = dialogBuilder.create()
+        lastAddQuestDialog.show()
+
+
+        lastAddQuestDialog.addQuestPhotoButton.setOnClickListener {
+            //TODO: start take a photo UI
+
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            }
+        }
     }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
