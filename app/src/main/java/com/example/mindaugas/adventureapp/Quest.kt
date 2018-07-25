@@ -6,15 +6,22 @@ import java.util.*
 
 //import com.google.android.gms.maps.model.LatLng
 
-data class Quest(var ID: String = UUID.randomUUID().toString(), var name: String = "", var description: String = "",
-                 var answer: String = "", var latitude: Double = 0.0, var longitude: Double = 0.0): Parcelable {
+data class Quest(var ID: String = UUID.randomUUID().toString(),
+                 var name: String = "",
+                 var description: String = "",
+                 var answer: String = "",
+                 var latitude: Double = 0.0,
+                 var longitude: Double = 0.0,
+                 var icon: String = ""
+                 ): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readString(),
             parcel.readString(),
             parcel.readString(),
             parcel.readDouble(),
-            parcel.readDouble()) {
+            parcel.readDouble(),
+            parcel.readString()) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -24,6 +31,7 @@ data class Quest(var ID: String = UUID.randomUUID().toString(), var name: String
         parcel.writeString(answer)
         parcel.writeDouble(latitude)
         parcel.writeDouble(longitude)
+        parcel.writeString(icon)
     }
 
     override fun describeContents(): Int {

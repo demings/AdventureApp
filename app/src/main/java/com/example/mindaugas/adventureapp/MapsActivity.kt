@@ -7,12 +7,14 @@ import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -25,11 +27,13 @@ import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.add_quest_dialog.*
+import java.io.ByteArrayOutputStream
 import java.util.*
 
 
@@ -50,9 +54,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     lateinit var geofenceMethods: GeofenceMethods
 
 
-    lateinit var firebase : Firebase
+    lateinit var firebaseMethods : FirebaseMethods
 
     lateinit var lastAddQuestDialog: AlertDialog
+    lateinit var lastAddQuestImage: Bitmap
 
     companion object {
         var isAnswered = mutableMapOf<String, Boolean>()
@@ -71,7 +76,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         mapFragment.getMapAsync(this)
 
         geofenceMethods = GeofenceMethods(this)
-        firebase = Firebase(this)
+        firebaseMethods = FirebaseMethods(this)
 
         addQuestButton.setOnClickListener{
             var builder = PlacePicker.IntentBuilder()
@@ -101,23 +106,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             }
         }else
 
-            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-                var extras = data!!.extras
-                var imageBitmap = extras.get("data")
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            var extras = data!!.extras
+            var imageBitmap = extras.get("data")
 
-                lastAddQuestDialog.addQuestPhotoButton.setImageBitmap(imageBitmap as Bitmap?)
-//                var mImageView.setImageBitmap(imageBitmap)
-            }
+            lastAddQuestImage = imageBitmap as Bitmap
+            lastAddQuestDialog.addQuestPhotoButton.setImageBitmap(lastAddQuestImage)
+
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        firebase.removeAuthStateListener()
+        firebaseMethods.removeAuthStateListener()
     }
 
     override fun onResume() {
         super.onResume()
-        firebase.addAuthStateListener()
+        firebaseMethods.addAuthStateListener()
     }
 
     /**
@@ -174,7 +180,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     }
 
     fun getQuestsFromFireStore(){
-        firebase.firestore.collection("quests")
+        firebaseMethods.firestore.collection("quests")
                 .get()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -198,6 +204,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 .position(com.google.android.gms.maps.model.LatLng(quest.latitude, quest.longitude))
                 .title(quest.name)
                 .snippet(quest.description)
+                .icon(BitmapDescriptorFactory.fromBitmap(decodeBase64ToBitmap(quest.icon)))
         )
 
         marker.tag = quest
@@ -214,13 +221,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setTitle(quest.name)
         dialogBuilder.setMessage(quest.description)
         dialogBuilder.setPositiveButton("Submit") { dialog, whichButton ->
-            if(editText.text.toString().equals(quest.answer)){
+            if(editText.text.toString() == quest.answer){
                 Toast.makeText(this, "Answer is correct!", Toast.LENGTH_SHORT).show()
 //                quest.isAnswered = true
                 isAnswered[quest.ID] = true
                 currentUser.score = isAnswered.size
-                firebase.setIsAnswered(isAnswered)
-                firebase.setUser(currentUser)
+                firebaseMethods.setIsAnswered(isAnswered)
+                firebaseMethods.setUser(currentUser)
                 updateScoreView()
                 //TODO: change marker color
             }else{
@@ -249,6 +256,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         dialogBuilder.setTitle("Enter quest info")
 //        dialogBuilder.setMessage(quest.description)
         dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
+            //TODO: validate
+
+
 
             var quest = Quest(
                     UUID.randomUUID().toString(),
@@ -256,10 +266,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     questDescription.text.toString(),
                     questAnswer.text.toString(),
                     place.latLng.latitude,
-                    place.latLng.longitude
+                    place.latLng.longitude,
+                    encodeBitmapToBase64(lastAddQuestImage)
             )
 
-            firebase.addQuest(quest)
+            firebaseMethods.addQuest(quest)
 
             getQuestsFromFireStore()
         }
@@ -271,15 +282,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
 
         lastAddQuestDialog.addQuestPhotoButton.setOnClickListener {
-            //TODO: start take a photo UI
-
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            if (takePictureIntent.resolveActivity(packageManager) != null) {
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             }
         }
     }
 
+    fun encodeBitmapToBase64(bitmap: Bitmap): String{
+        var baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
+        return android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.DEFAULT)
+    }
+
+    fun decodeBase64ToBitmap(encodedImage: String): Bitmap{
+        var decodedString = Base64.decode(encodedImage, Base64.DEFAULT)
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
