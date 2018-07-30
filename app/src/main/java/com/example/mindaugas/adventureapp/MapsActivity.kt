@@ -27,7 +27,6 @@ import com.google.android.gms.location.places.ui.PlacePicker
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -63,6 +62,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         var isAnswered = mutableMapOf<String, Boolean>()
         var quests = mutableMapOf<String, Quest>()
         var currentUser: User = User()
+
+        fun encodeBitmapToBase64(bitmap: Bitmap): String{
+            var baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
+            return android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.DEFAULT)
+        }
+
+        fun decodeBase64ToBitmap(encodedImage: String): Bitmap{
+            var decodedString = Base64.decode(encodedImage, Base64.DEFAULT)
+            return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+        }
     }
 
 
@@ -138,6 +148,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onMapReady(googleMap: GoogleMap) {
 
         mMap = googleMap
+        mMap.setInfoWindowAdapter(QuestInfoWindow(this))
         locationMethods = LocationMethods(this, mMap)
         locationMethods.centerMapOnMyLocation()
 
@@ -204,7 +215,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 .position(com.google.android.gms.maps.model.LatLng(quest.latitude, quest.longitude))
                 .title(quest.name)
                 .snippet(quest.description)
-                .icon(BitmapDescriptorFactory.fromBitmap(decodeBase64ToBitmap(quest.icon)))
+//                .icon(BitmapDescriptorFactory.fromBitmap(decodeBase64ToBitmap(quest.icon)))
         )
 
         marker.tag = quest
@@ -287,17 +298,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             }
         }
-    }
-
-    fun encodeBitmapToBase64(bitmap: Bitmap): String{
-        var baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-        return android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.DEFAULT)
-    }
-
-    fun decodeBase64ToBitmap(encodedImage: String): Bitmap{
-        var decodedString = Base64.decode(encodedImage, Base64.DEFAULT)
-        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
