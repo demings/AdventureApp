@@ -12,7 +12,8 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
                  var answer: String = "",
                  var latitude: Double = 0.0,
                  var longitude: Double = 0.0,
-                 var icon: String = ""
+                 var icon: String = "",
+                 var creator: String = ""
                  ): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
@@ -21,6 +22,7 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
             parcel.readString(),
             parcel.readDouble(),
             parcel.readDouble(),
+            parcel.readString(),
             parcel.readString()) {
     }
 
@@ -32,6 +34,7 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
         parcel.writeDouble(latitude)
         parcel.writeDouble(longitude)
         parcel.writeString(icon)
+        parcel.writeString(creator)
     }
 
     override fun describeContents(): Int {

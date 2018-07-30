@@ -94,7 +94,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == RC_SIGN_IN){
@@ -278,7 +277,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
                     questAnswer.text.toString(),
                     place.latLng.latitude,
                     place.latLng.longitude,
-                    encodeBitmapToBase64(lastAddQuestImage)
+                    encodeBitmapToBase64(lastAddQuestImage),
+                    currentUser.ID
             )
 
             firebaseMethods.addQuest(quest)
