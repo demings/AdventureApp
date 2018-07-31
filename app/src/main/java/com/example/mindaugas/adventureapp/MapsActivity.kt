@@ -34,7 +34,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.add_quest_dialog.*
 import java.io.ByteArrayOutputStream
-import java.util.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
@@ -258,43 +257,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         val dialogBuilder = AlertDialog.Builder(this)
         val inflater = this.layoutInflater
         val dialogView = inflater.inflate(R.layout.add_quest_dialog, null)
+        
         dialogBuilder.setView(dialogView)
-        val questDescription = dialogView.findViewById<View>(R.id.questDescription) as EditText
-        val questName = dialogView.findViewById<View>(R.id.questName) as EditText
-        val questAnswer = dialogView.findViewById<View>(R.id.questAnswer) as EditText
-//        Toast.makeText(this, editTextName.text, Toast.LENGTH_SHORT).show()
-
         dialogBuilder.setTitle("Enter quest info")
-//        dialogBuilder.setMessage(quest.description)
         dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->
-            //TODO: validate
-
-
-
-            var quest = Quest(
-                    UUID.randomUUID().toString(),
-                    questName.text.toString(),
-                    questDescription.text.toString(),
-                    questAnswer.text.toString(),
-                    place.latLng.latitude,
-                    place.latLng.longitude,
-                    encodeBitmapToBase64(lastAddQuestImage),
-                    currentUser.ID
-            )
-
-            firebaseMethods.addQuest(quest)
-
-            getQuestsFromFireStore()
+            // unreachable
+            // put code in the custom listener
         }
         dialogBuilder.setNegativeButton("Cancel") { dialog, whichButton ->
             //pass
         }
+
         lastAddQuestDialog = dialogBuilder.create()
         lastAddQuestDialog.show()
         lastAddQuestDialog.addQuestPhotoButton.tag = false
 
-        var positiveButton = lastAddQuestDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-        positiveButton.setOnClickListener(CustomAddQuestListener(lastAddQuestDialog, this as Activity))
+        lastAddQuestDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                .setOnClickListener(CustomAddQuestListener(lastAddQuestDialog, this, place))
 
         lastAddQuestDialog.addQuestPhotoButton.setOnClickListener {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE);

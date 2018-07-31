@@ -1,23 +1,21 @@
 package com.example.mindaugas.adventureapp
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.view.View
 import android.widget.Toast
+import com.google.android.gms.location.places.Place
 import kotlinx.android.synthetic.main.add_quest_dialog.*
+import java.util.*
 
-class CustomAddQuestListener(var dialog: Dialog, var activity: Context) : View.OnClickListener {
+class CustomAddQuestListener(var dialog: Dialog, var activity: MapsActivity, var place: Place) : View.OnClickListener {
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onClick(p0: View?) {
         var valid = true
         var validString = "Not valid:"
 
-//        val questDescription = dialogView.findViewById<View>(R.id.questDescription) as EditText
-//        val questName = dialogView.findViewById<View>(R.id.questName) as EditText
-//        val questAnswer = dialogView.findViewById<View>(R.id.questAnswer) as EditText
 
         if(dialog.questName.text.isBlank()){
             valid = false
@@ -45,6 +43,22 @@ class CustomAddQuestListener(var dialog: Dialog, var activity: Context) : View.O
 
         if(valid){
             dialog.dismiss()
+
+            var quest = Quest(
+                    UUID.randomUUID().toString(),
+                    dialog.questName.text.toString(),
+                    dialog.questDescription.text.toString(),
+                    dialog.questAnswer.text.toString(),
+                    place.latLng.latitude,
+                    place.latLng.longitude,
+                    MapsActivity.encodeBitmapToBase64(activity.lastAddQuestImage),
+                    MapsActivity.currentUser.ID
+            )
+
+            activity.firebaseMethods.addQuest(quest)
+
+            activity.getQuestsFromFireStore()
+
         }else{
             Toast.makeText(activity, validString, Toast.LENGTH_SHORT).show()
         }
