@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -110,7 +111,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             if (resultCode == RESULT_OK) {
                 var place = PlacePicker.getPlace(data, this)
                 var toastMsg = String.format("Place: %s", place.name)
-                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
+                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
                 showAddQuestDialog(place)
             }
         }else
@@ -121,7 +122,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
             lastAddQuestImage = imageBitmap as Bitmap
             lastAddQuestDialog.addQuestPhotoButton.setImageBitmap(lastAddQuestImage)
-
+            lastAddQuestDialog.addQuestPhotoButton.tag = true
         }
     }
 
@@ -290,7 +291,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         }
         lastAddQuestDialog = dialogBuilder.create()
         lastAddQuestDialog.show()
+        lastAddQuestDialog.addQuestPhotoButton.tag = false
 
+        var positiveButton = lastAddQuestDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+        positiveButton.setOnClickListener(CustomAddQuestListener(lastAddQuestDialog, this as Activity))
 
         lastAddQuestDialog.addQuestPhotoButton.setOnClickListener {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE);
