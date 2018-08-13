@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.util.*
 
-//import com.google.android.gms.maps.model.LatLng
 
 data class Quest(var ID: String = UUID.randomUUID().toString(),
                  var name: String = "",
@@ -13,7 +12,8 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
                  var latitude: Double = 0.0,
                  var longitude: Double = 0.0,
                  var icon: String = "",
-                 var creator: String = ""
+                 var creator: String = "",
+                 var rating: Int = 0
                  ): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
@@ -23,7 +23,8 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
             parcel.readDouble(),
             parcel.readDouble(),
             parcel.readString(),
-            parcel.readString()) {
+            parcel.readString(),
+            parcel.readInt()) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -35,6 +36,7 @@ data class Quest(var ID: String = UUID.randomUUID().toString(),
         parcel.writeDouble(longitude)
         parcel.writeString(icon)
         parcel.writeString(creator)
+        parcel.writeInt(rating)
     }
 
     override fun describeContents(): Int {

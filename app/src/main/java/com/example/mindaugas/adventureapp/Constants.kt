@@ -10,6 +10,7 @@ class Constants {
         const val REQUEST_IMAGE_CAPTURE = 125
         const val MY_PERMISSIONS_REQUEST_ACCESS_LOCATION: Int = 0
         const val REQUEST_CHECK_SETTINGS = 1
+        const val DEFAULT_RATING = 0
 //        var userID: String = ""
     }
 }

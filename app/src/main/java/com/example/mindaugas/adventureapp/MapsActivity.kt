@@ -39,7 +39,6 @@ import java.io.ByteArrayOutputStream
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     private lateinit var mMap: GoogleMap
-    private val TAG = MapsActivity::class.java.simpleName
 
 
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -257,7 +256,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
         val dialogBuilder = AlertDialog.Builder(this)
         val inflater = this.layoutInflater
         val dialogView = inflater.inflate(R.layout.add_quest_dialog, null)
-        
+
         dialogBuilder.setView(dialogView)
         dialogBuilder.setTitle("Enter quest info")
         dialogBuilder.setPositiveButton("Add") { dialog, whichButton ->

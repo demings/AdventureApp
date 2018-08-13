@@ -17,7 +17,6 @@ import java.util.*
 class FirebaseMethods {
     var firestore = FirebaseFirestore.getInstance()
     var activity : Activity
-//    var fireStorage = FirebaseStorage.getInstance()
 
     var mFirebaseAuth =  FirebaseAuth.getInstance()
     var mAuthStateListener: FirebaseAuth.AuthStateListener

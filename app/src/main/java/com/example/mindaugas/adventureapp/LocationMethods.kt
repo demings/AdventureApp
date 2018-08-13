@@ -5,9 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Criteria
 import android.location.Location
-import android.location.LocationManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
@@ -18,9 +16,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
-import android.content.Context.LOCATION_SERVICE
-import android.support.v4.content.ContextCompat.getSystemService
-import com.facebook.FacebookSdk.getApplicationContext
 
 
 class LocationMethods{
@@ -76,8 +71,8 @@ class LocationMethods{
 
                             val cameraPosition = CameraPosition.Builder()
                                     .target(LatLng(location.latitude, location.longitude))      // Sets the center of the map to location user
-                                    .zoom(17f)                   // Sets the zoom
-                                    .bearing(90f)                // Sets the orientation of the camera to east
+                                    .zoom(15f)                   // Sets the zoom
+                                    .bearing(0f)                // Sets the orientation of the camera to north
                                     .tilt(40f)                   // Sets the tilt of the camera to 30 degrees
                                     .build()                   // Creates a CameraPosition from the builder
                             map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))

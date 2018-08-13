@@ -9,13 +9,14 @@ import com.google.android.gms.location.places.Place
 import kotlinx.android.synthetic.main.add_quest_dialog.*
 import java.util.*
 
-class CustomAddQuestListener(var dialog: Dialog, var activity: MapsActivity, var place: Place) : View.OnClickListener {
+class CustomAddQuestListener(private var dialog: Dialog, private var activity: MapsActivity, private var place: Place) : View.OnClickListener {
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onClick(p0: View?) {
         var valid = true
         var validString = "Not valid:"
 
+        // validation
 
         if(dialog.questName.text.isBlank()){
             valid = false
@@ -34,7 +35,6 @@ class CustomAddQuestListener(var dialog: Dialog, var activity: MapsActivity, var
         }
 
 
-
         if(!(dialog.addQuestPhotoButton.tag as Boolean)){
             valid = false
             validString += " picture;"
@@ -44,7 +44,7 @@ class CustomAddQuestListener(var dialog: Dialog, var activity: MapsActivity, var
         if(valid){
             dialog.dismiss()
 
-            var quest = Quest(
+            val quest = Quest(
                     UUID.randomUUID().toString(),
                     dialog.questName.text.toString(),
                     dialog.questDescription.text.toString(),
@@ -52,7 +52,8 @@ class CustomAddQuestListener(var dialog: Dialog, var activity: MapsActivity, var
                     place.latLng.latitude,
                     place.latLng.longitude,
                     MapsActivity.encodeBitmapToBase64(activity.lastAddQuestImage),
-                    MapsActivity.currentUser.ID
+                    MapsActivity.currentUser.ID,
+                    Constants.DEFAULT_RATING
             )
 
             activity.firebaseMethods.addQuest(quest)
